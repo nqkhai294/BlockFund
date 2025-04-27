@@ -10,7 +10,7 @@ const Navigation = () => {
     }
 
     const handleClickProject = () => {
-        router.push("/project");
+        router.push("/projects");
     }
 
     const handleClickServices = () => {

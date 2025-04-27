@@ -1,7 +1,7 @@
 import Container from "../../Container";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
-import { client } from "../../../client";
+import { client } from "@/app/types/client";
 import { ConnectButton } from "thirdweb/react";
 
 const Navbar = () => {
@@ -13,10 +13,7 @@ const Navbar = () => {
             <Logo />
             <Navigation />
             <div className="hidden lg:block text-black text-sx  rounded-2xl bg-white cursor-pointer hover:bg-amber-400">
-              <ConnectButton
-                client={client}
-                
-              />
+              <ConnectButton client={client} />
             </div>
           </div>
         </Container>

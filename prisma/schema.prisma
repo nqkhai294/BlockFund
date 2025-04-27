@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   String
+  image     String
+  progress  Int
+  target    Float
+  raised    Float
+  backers   Int      @default(0)
+  daysLeft  Int
+  startDate String
+  endDate   String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  authorId String   @db.ObjectId
+  author   User     @relation(fields: [authorId], references: [id])
+  comments Comment[]
+  backersList Backer[]
+}
+
+model User {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  avatar   String
+  bio      String?
+  projects Int       @default(0)
+  email    String    @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdProjects Project[]
+  contributions Backer[]
+  comments Comment[]
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  date      String
+  createdAt DateTime @default(now())
+  
+  // Relations
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  projectId String   @db.ObjectId
+  project   Project  @relation(fields: [projectId], references: [id])
+}
+
+model Backer {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  amount    Float
+  date      String
+  createdAt DateTime @default(now())
+  
+  // Relations
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  projectId String   @db.ObjectId
+  project   Project  @relation(fields: [projectId], references: [id])
+}
