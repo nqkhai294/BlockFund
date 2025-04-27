@@ -1,11 +1,9 @@
 'use client'
 
-import Image from "next/image";
 import Container from "../Container";
 import { CardProject } from "./Cardproject";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Search, Plus } from "lucide-react";
 
 interface Project {
@@ -23,7 +21,7 @@ interface Project {
 }
 
 // Danh sách các phân loại dự án
-const categories = ["All", "DeFi", "Art", "DAO", "NFT", "Other"];
+const categories = ["All", "Technology", "Art", "Games", "DeFi", "NFT", "DAO", "Other"];
 
 const Project = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -87,13 +85,13 @@ const Project = () => {
       <Container>
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-white">Projects</h1>
-          <Link 
-            href="/create"
+          <button
+            onClick={() => router.push('/create')}
             className="flex items-center gap-2 bg-amber-400 hover:bg-amber-500 text-black px-4 py-2 rounded-md transition-colors"
           >
             <Plus size={20} />
-            <span>Create New Project</span>
-          </Link>
+            <span>Create Project</span>
+          </button>
         </div>
         
         <div className="flex flex-col md:flex-row gap-4 mb-8">

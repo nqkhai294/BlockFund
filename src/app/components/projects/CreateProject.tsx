@@ -258,14 +258,14 @@ export function CreateProject() {
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="inline-flex items-center rounded-2xl bg-gray-500 px-6 py-3 text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50 transition-colors"
+              className="inline-flex items-center rounded-2xl bg-gray-300 px-6 py-3 text-sm font-medium text-black hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/50 transition-colors"
             >
               Hủy bỏ
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center rounded-2xl bg-[#4acd8d] px-6 py-3 text-sm font-medium text-white hover:bg-[#3db87d] focus:outline-none focus:ring-2 focus:ring-[#4acd8d]/50 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center rounded-2xl bg-amber-400 hover:bg-amber-500 px-6 py-3 text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-[#4acd8d]/50 disabled:opacity-50 transition-colors"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Tạo dự án

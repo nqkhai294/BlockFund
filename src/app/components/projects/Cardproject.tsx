@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface CardProjectProps {
   id: string
@@ -25,9 +26,18 @@ export function CardProject({
   author,
   category,
 }: CardProjectProps) {
+  const router = useRouter()
+
+  // Hàm xử lý khi người dùng click vào card
+  const handleCardClick = () => {
+    router.push(`/project/${id}`)
+  }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white text-black shadow-sm transition-all hover:shadow-md">
+    <div 
+      className="overflow-hidden rounded-lg border border-gray-200 bg-white text-black shadow-sm transition-all hover:shadow-md cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative h-48 w-full">
         <Image src={image || "/placeholder.svg?height=192&width=384"} alt={title} fill className="object-cover" />
         {category && (
@@ -37,18 +47,13 @@ export function CardProject({
         )}
       </div>
       <div className="p-4">
-        <Link 
-          href={`/project/${encodeURIComponent(id)}`}
-          className="hover:underline"
-        >
-          <h3 className="line-clamp-1 text-xl font-bold text-black ">{title}</h3>
-        </Link>
+        <h3 className="line-clamp-1 text-xl font-bold text-black">{title}</h3>
         <p className="line-clamp-2 mt-1 text-sm text-gray-500">{content}</p>
       </div>
       <div className="px-4 pb-0">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="font-medium">{raised / target}% Complete</span>
+            <span className="font-medium">{Math.min(100, (raised / target) * 100).toFixed(2)}% Hoàn thành</span>
             <span>
               {raised} / {target} ETH
             </span>
@@ -56,7 +61,7 @@ export function CardProject({
           <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
             <div
               className="h-full rounded-full bg-[#4acd8d]"
-              style={{ width: `${(raised / target) > 100 ? 100 :  (raised / target)}%` }}
+              style={{ width: `${(raised / target) > 1 ? 100 : (raised / target) * 100}%` }}
             ></div>
           </div>
         </div>
