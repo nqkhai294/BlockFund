@@ -1,9 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import Image from "next/image"
+import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Clock, Users, Calendar, ArrowRight } from "lucide-react"
 import Container from "../Container"
+import { useCrowdfunding } from "@/app/hooks/useCrowdfunding"
+import { ethers } from "ethers"
+import { daysLeft, calculateBarPercentage } from '@/app/utils'
+import { useRouter } from 'next/navigation'
+import { InvestorsSection } from './InvestorsSection'
 
 interface Comment {
   id: string
@@ -28,91 +33,85 @@ interface ProjectDetailProps {
   image: string
   title: string
   content: string
-  target: number
-  raised: number
-  backers: number
-  daysLeft: number
-  startDate: string
-  endDate: string
-  author: {
-    id: string
-    name: string
-    avatar: string
-    bio?: string
-    projects?: number
-  }
-  category: string
-  backersData: Backer[]
-  comments: Comment[]
-  slug: string
-  description: string
-  deadline: string
-  goal: number
-  address: string
-  link: string
-  createdAt: string
-  donators: number
+  target: string
+  amountCollected: string
+  deadline: number
+  owner: string
+  donators: string[]
+  donations: string[]
 }
 
-export function ProjectDetail({
+const ProjectDetail = ({
   id,
   image,
   title,
   content,
   target,
-  raised,
-  backers,
-  daysLeft,
-  startDate,
-  endDate,
-  author,
-  category,
-  backersData,
-  comments: initialComments,
-}: ProjectDetailProps) {
-  const [contribution, setContribution] = useState<string>("0.1")
+  amountCollected,
+  deadline,
+  owner,
+  donators: initialDonators,
+  donations: initialDonations,
+}: ProjectDetailProps) => {
+  const [contribution, setContribution] = useState<string>('0.1')
   const [activeTab, setActiveTab] = useState<string>("about")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newComment, setNewComment] = useState("")
-  const [comments, setComments] = useState<Comment[]>(initialComments || [])
-  const [projectStats, setProjectStats] = useState({
-    raised,
-    backers
-  })
+  const [comments, setComments] = useState<Comment[]>([])
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
-  
-  // Tính phần trăm tiến độ của dự án
-  const progressPercentage = Math.min(100, (raised / target) * 100)
+  const [donators, setDonators] = useState<string[]>(initialDonators)
+  const [donations, setDonations] = useState<string[]>(initialDonations)
+  const router = useRouter()
+  const { donateToCampaign, isDonating, getDonators } = useCrowdfunding()
 
-  // Xử lý khi người dùng đóng góp vào dự án
+  const remainingDays = daysLeft(deadline)
+  const percentage = calculateBarPercentage(target, amountCollected)
+
+  // Cập nhật danh sách nhà đầu tư khi có thay đổi
+  useEffect(() => {
+    const fetchDonators = async () => {
+      try {
+        const result = await getDonators(id)
+        if (result) {
+          setDonators(result.donators)
+          setDonations(result.donations)
+        }
+      } catch (error) {
+        console.error('Error fetching donators:', error)
+      }
+    }
+
+    fetchDonators()
+  }, [id, getDonators])
+
   const handleContribute = async () => {
     if (!contribution || parseFloat(contribution) <= 0) {
-      setErrorMessage("Vui lòng nhập số tiền hợp lệ")
+      setErrorMessage('Vui lòng nhập số tiền hợp lệ')
       return
     }
 
     try {
       setIsSubmitting(true)
-      setErrorMessage("")
+      setErrorMessage('')
       
-      // TODO: Gửi transaction blockchain ở đây
+      const tx = await donateToCampaign(parseInt(id), contribution)
       
-      // Giả lập thành công đóng góp
-      setTimeout(() => {
-        // Cập nhật số liệu thống kê của dự án
-        setProjectStats({
-          raised: projectStats.raised + parseFloat(contribution),
-          backers: projectStats.backers + 1
-        })
+      if (tx) {
+        setSuccessMessage('Đóng góp thành công! Cảm ơn bạn đã ủng hộ dự án.')
+        setContribution('0.1')
         
-        setSuccessMessage("Đóng góp thành công! Cảm ơn bạn đã ủng hộ dự án.")
-        setContribution("0.1")
-        setIsSubmitting(false)
-      }, 1500)
+        // Cập nhật lại danh sách nhà đầu tư sau khi đóng góp thành công
+        const result = await getDonators(id)
+        if (result) {
+          setDonators(result.donators)
+          setDonations(result.donations)
+        }
+      }
     } catch (error) {
-      console.error("Lỗi khi đóng góp:", error)
-      setErrorMessage("Đã xảy ra lỗi khi đóng góp. Vui lòng thử lại.")
+      console.error('Lỗi khi đóng góp:', error)
+      setErrorMessage('Đã xảy ra lỗi khi đóng góp. Vui lòng thử lại.')
+    } finally {
       setIsSubmitting(false)
     }
   }
@@ -137,8 +136,6 @@ export function ProjectDetail({
         content: newComment,
         date: new Date().toLocaleDateString("vi-VN")
       }
-      
-      // TODO: Gửi API để lưu bình luận thật sự
       
       setComments([commentData, ...comments])
       setNewComment("")
@@ -185,22 +182,22 @@ export function ProjectDetail({
               <div className="flex justify-between">
                 <h1 className="text-3xl font-bold">{title}</h1>
                 <span className="rounded-full bg-amber-400 px-4 py-1 text-sm font-medium text-black">
-                  {category}
+                  {owner.slice(0, 6)}...{owner.slice(-4)}
                 </span>
               </div>
               
               {/* Tiến độ dự án */}
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="font-medium">{progressPercentage.toFixed(2)}% Hoàn thành</span>
+                  <span className="font-medium">{percentage}% Hoàn thành</span>
                   <span>
-                    {raised} / {target} ETH
+                    {amountCollected} / {target} ETH
                   </span>
                 </div>
                 <div className="h-3 w-full overflow-hidden rounded-full bg-gray-700">
                   <div
                     className="h-full rounded-full bg-amber-400"
-                    style={{ width: `${progressPercentage}%` }}
+                    style={{ width: `${percentage}%` }}
                   ></div>
                 </div>
               </div>
@@ -226,7 +223,7 @@ export function ProjectDetail({
                     }`}
                     onClick={() => setActiveTab("backers")}
                   >
-                    Nhà đầu tư ({projectStats.backers})
+                    Nhà đầu tư ({donators.length})
                   </button>
                   <button
                     className={`border-b-2 px-4 py-2 font-medium ${
@@ -252,204 +249,111 @@ export function ProjectDetail({
                 
                 {/* Tab Nhà đầu tư */}
                 {activeTab === "backers" && (
-                  <div className="space-y-6">
-                    {backersData && backersData.length > 0 ? (
-                      backersData.map((backer) => (
-                        <div
-                          key={backer.id}
-                          className="flex items-center justify-between rounded-lg bg-gray-800 p-4"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                              <Image
-                                src={backer.avatar || "/placeholder.svg"}
-                                alt={backer.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <div>
-                              <h3 className="font-medium">{backer.name}</h3>
-                              <p className="text-xs text-gray-400">{backer.date}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-amber-400">{backer.amount} ETH</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="rounded-lg border border-gray-700 p-8 text-center">
-                        <p className="text-gray-400">Chưa có nhà đầu tư nào.</p>
-                        <p className="mt-2 text-sm text-gray-500">Hãy là người đầu tiên ủng hộ dự án này!</p>
-                      </div>
-                    )}
-                  </div>
+                  <InvestorsSection
+                    donators={donators}
+                    donations={donations}
+                    amountCollected={amountCollected}
+                  />
                 )}
                 
                 {/* Tab Bình luận */}
                 {activeTab === "comments" && (
                   <div className="space-y-6">
-                    {/* Form bình luận */}
-                    <div className="space-y-3 rounded-lg bg-gray-800 p-4">
+                    <div className="space-y-4">
                       <textarea
-                        className="w-full rounded-md border border-gray-700 bg-gray-900 p-3 text-white placeholder-gray-500 focus:border-amber-400 focus:outline-none"
-                        placeholder="Viết bình luận của bạn..."
-                        rows={3}
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                      ></textarea>
-                      <div className="flex justify-end">
-                        <button
-                          onClick={handleAddComment}
-                          disabled={isSubmitting}
-                          className="flex items-center space-x-2 rounded-md bg-amber-400 px-4 py-2 font-medium text-black hover:bg-amber-500 disabled:opacity-50"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
-                              <span>Đang gửi...</span>
-                            </>
-                          ) : (
-                            <span>Gửi bình luận</span>
-                          )}
-                        </button>
-                      </div>
+                        placeholder="Viết bình luận của bạn..."
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                        rows={4}
+                      />
+                      <button
+                        onClick={handleAddComment}
+                        disabled={isSubmitting}
+                        className="rounded-lg bg-amber-400 px-6 py-2 text-sm font-medium text-black hover:bg-amber-500 disabled:opacity-50"
+                      >
+                        {isSubmitting ? "Đang gửi..." : "Gửi bình luận"}
+                      </button>
                     </div>
                     
-                    {/* Danh sách bình luận */}
-                    {comments && comments.length > 0 ? (
-                      comments.map((comment) => (
+                    <div className="space-y-4">
+                      {comments.map((comment) => (
                         <div key={comment.id} className="rounded-lg bg-gray-800 p-4">
                           <div className="flex items-center space-x-3">
-                            <div className="relative h-10 w-10 overflow-hidden rounded-full">
+                            <div className="h-10 w-10 overflow-hidden rounded-full">
                               <Image
-                                src={comment.user.avatar || "/placeholder.svg"}
+                                src={comment.user.avatar}
                                 alt={comment.user.name}
-                                fill
-                                className="object-cover"
+                                width={40}
+                                height={40}
                               />
                             </div>
                             <div>
-                              <h3 className="font-medium">{comment.user.name}</h3>
-                              <p className="text-xs text-gray-400">{comment.date}</p>
+                              <p className="font-medium">{comment.user.name}</p>
+                              <p className="text-sm text-gray-400">{comment.date}</p>
                             </div>
                           </div>
-                          <div className="mt-3 text-gray-300">{comment.content}</div>
+                          <p className="mt-3 text-gray-300">{comment.content}</p>
                         </div>
-                      ))
-                    ) : (
-                      <div className="rounded-lg border border-gray-700 p-8 text-center">
-                        <p className="text-gray-400">Chưa có bình luận nào.</p>
-                        <p className="mt-2 text-sm text-gray-500">Hãy là người đầu tiên bình luận!</p>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
           
-          {/* Cột phải - Đóng góp và thông tin tác giả */}
+          {/* Cột phải - Thông tin đóng góp */}
           <div className="space-y-6">
-            {/* Box đóng góp */}
-            <div className="rounded-lg bg-gray-800 p-6">
-              <h2 className="text-xl font-bold">Đóng góp vào dự án</h2>
+            <div className="rounded-xl bg-gray-800 p-6">
+              <h2 className="text-xl font-bold">Đóng góp cho dự án</h2>
+              
               <div className="mt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Mục tiêu</span>
+                  <span className="font-medium">{target} ETH</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Đã gọi được</span>
+                  <span className="font-medium">{amountCollected} ETH</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Số người ủng hộ</span>
+                  <span className="font-medium">{donators.length}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Thời gian còn lại</span>
+                  <span className="font-medium">{remainingDays} ngày</span>
+                </div>
+              </div>
+              
+              <div className="mt-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400">Số lượng (ETH)</label>
-                  <div className="mt-1 flex items-center">
-                    <input
-                      type="number"
-                      className="w-full rounded-md border border-gray-700 bg-gray-900 p-3 text-white placeholder-gray-500 focus:border-amber-400 focus:outline-none"
-                      placeholder="0.1"
-                      step="0.01"
-                      min="0.01"
-                      value={contribution}
-                      onChange={(e) => setContribution(e.target.value)}
-                    />
-                  </div>
+                  <label htmlFor="amount" className="mb-2 block text-sm font-medium">
+                    Số ETH muốn đóng góp
+                  </label>
+                  <input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={contribution}
+                    onChange={(e) => setContribution(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white focus:border-amber-400 focus:outline-none"
+                  />
                 </div>
                 
                 <button
                   onClick={handleContribute}
-                  disabled={isSubmitting}
-                  className="flex w-full items-center justify-center space-x-2 rounded-md bg-amber-400 py-3 font-medium text-black hover:bg-amber-500 disabled:opacity-50"
+                  disabled={isSubmitting || isDonating || remainingDays <= 0}
+                  className="w-full rounded-lg bg-amber-400 px-6 py-3 text-sm font-medium text-black hover:bg-amber-500 disabled:opacity-50"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
-                      <span>Đang xử lý...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Ủng hộ ngay</span>
-                      <ArrowRight size={18} />
-                    </>
-                  )}
+                  {isSubmitting || isDonating ? "Đang xử lý..." : "Đóng góp ngay"}
                 </button>
               </div>
-              
-              <div className="mt-4">
-                <div className="rounded-md bg-amber-400/10 p-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Dự án kết thúc trong:</span>
-                    <span className="font-medium text-white">{daysLeft} ngày</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Thống kê dự án */}
-            <div className="rounded-lg bg-gray-800 p-6">
-              <h2 className="text-xl font-bold">Thống kê dự án</h2>
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <div className="text-center">
-                  <div className="flex justify-center">
-                    <Users className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <p className="mt-1 font-medium">{projectStats.backers}</p>
-                  <p className="text-xs text-gray-500">Nhà đầu tư</p>
-                </div>
-                <div className="text-center">
-                  <div className="flex justify-center">
-                    <Clock className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <p className="mt-1 font-medium">{daysLeft}</p>
-                  <p className="text-xs text-gray-500">Ngày còn lại</p>
-                </div>
-                <div className="text-center">
-                  <div className="flex justify-center">
-                    <Calendar className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <p className="mt-1 font-medium">{endDate}</p>
-                  <p className="text-xs text-gray-500">Kết thúc</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Thông tin tác giả */}
-            <div className="rounded-lg bg-gray-800 p-6">
-              <h2 className="text-xl font-bold">Người tạo dự án</h2>
-              <div className="mt-4 flex items-center space-x-3">
-                <div className="relative h-14 w-14 overflow-hidden rounded-full">
-                  <Image
-                    src={author.avatar || "/placeholder.svg"}
-                    alt={author.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-medium">{author.name}</h3>
-                  <p className="text-sm text-gray-400">{author.projects || 0} dự án</p>
-                </div>
-              </div>
-              {author.bio && (
-                <div className="mt-3 text-sm text-gray-300">
-                  {author.bio}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -457,3 +361,5 @@ export function ProjectDetail({
     </Container>
   )
 }
+
+export default ProjectDetail

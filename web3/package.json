@@ -1,0 +1,19 @@
+{
+  "name": "hardhat-javascript-starter",
+  "scripts": {
+    "build": "npx thirdweb@latest detect",
+    "deploy": "npx thirdweb@latest deploy",
+    "release": "npx thirdweb@latest release"
+  },
+  "devDependencies": {
+    "hardhat": "^2.10.1"
+  },
+  "dependencies": {
+    "@radix-ui/react-progress": "^1.1.4",
+    "@thirdweb-dev/contracts": "^3",
+    "@thirdweb-dev/storage": "^2.0.15",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.0.3",
+    "tailwind-merge": "^3.2.0"
+  }
+}

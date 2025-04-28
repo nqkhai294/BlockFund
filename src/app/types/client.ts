@@ -1,13 +1,9 @@
-import { createThirdwebClient } from "thirdweb";
+import { ThirdwebSDK } from "@thirdweb-dev/sdk"
+import { Sepolia } from "@thirdweb-dev/chains"
 
-// Replace this with your client ID string
-// refer to https://portal.thirdweb.com/typescript/v5/client on how to get a client ID
-const clientId = process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID;
+// refer to https://portal.thirdweb.com/typescript/v3/sdk on how to get a client ID
+const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
 
-if (!clientId) {
-  throw new Error("No client ID provided");
-}
-
-export const client = createThirdwebClient({
-  clientId: clientId,
-});
+export const client = new ThirdwebSDK(Sepolia, {
+  clientId,
+})
