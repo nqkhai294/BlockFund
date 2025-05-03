@@ -78,13 +78,25 @@ export const CardProject = ({
     try {
       // Nếu là URL IPFS
       if (imageUrl.startsWith('ipfs://')) {
-        const [hash, ...pathParts] = imageUrl.replace('ipfs://', '').split('/')
-        const path = pathParts.join('/')
-        return `https://${process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}.ipfscdn.io/ipfs/${hash}/${path}`
+        // Giữ nguyên toàn bộ đường dẫn sau ipfs://
+        const path = imageUrl.replace('ipfs://', '')
+        // Sử dụng public IPFS gateway và giữ nguyên encoding của URL
+        const url = `https://ipfs.io/ipfs/${path}`
+        console.log('IPFS URL:', url)
+        return url
       }
       
       // Nếu là URL thông thường
       if (imageUrl.startsWith('http')) {
+        // Nếu là URL từ ipfscdn.io hoặc các gateway khác, chuyển sang ipfs.io
+        if (imageUrl.includes('/ipfs/')) {
+          // Giữ nguyên phần path sau /ipfs/
+          const path = imageUrl.substring(imageUrl.indexOf('/ipfs/') + 6)
+          const url = `https://ipfs.io/ipfs/${path}`
+          console.log('Converted IPFS URL:', url)
+          return url
+        }
+        console.log('HTTP URL:', imageUrl)
         return imageUrl
       }
 
@@ -110,12 +122,14 @@ export const CardProject = ({
         </button>
       )}
       <div className="relative h-48 w-full">
-        <Image
+        <img
           src={getImageUrl(image)}
           alt={title}
-          fill
-          className="object-cover"
-          unoptimized
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            console.error('Error loading image:', e)
+            e.currentTarget.src = '/placeholder.svg'
+          }}
         />
       </div>
       <div className="p-6">

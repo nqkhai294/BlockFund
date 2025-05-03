@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Loader2, X } from 'lucide-react'
 import Image from 'next/image'
+import { ThirdwebStorage } from "@thirdweb-dev/storage"
 
 interface UploadImageProps {
   onImageUploaded: (url: string) => void
@@ -12,6 +13,11 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState('')
   const [previewUrl, setPreviewUrl] = useState('')
+  
+  // Khởi tạo storage với clientId
+  const storage = new ThirdwebStorage({
+    clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
+  })
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -21,19 +27,16 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
       setIsUploading(true)
       setError('')
 
-      // Chuyển đổi file thành Base64
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      
-      reader.onload = () => {
-        const base64String = reader.result as string
-        setPreviewUrl(base64String)
-        onImageUploaded(base64String)
-      }
+      // Tạo URL tạm thời để preview
+      const tempUrl = URL.createObjectURL(file)
+      setPreviewUrl(tempUrl)
 
-      reader.onerror = () => {
-        throw new Error('Failed to read file')
-      }
+      // Upload file lên IPFS thông qua Thirdweb Storage
+      const uri = await storage.upload(file)
+      
+      // Lấy URL gateway để hiển thị ảnh
+      const url = await storage.resolveScheme(uri)
+      onImageUploaded(url)
     } catch (error) {
       console.error('Error uploading image:', error)
       setError('Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.')
