@@ -24,7 +24,7 @@ interface CardProjectProps {
   }
 }
 
-export const CardProject = ({
+const CardProject = ({
   id,
   image,
   title,
@@ -109,14 +109,14 @@ export const CardProject = ({
 
   return (
     <div 
-      className="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative"
+      className="bg-secondary/30 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative border border-border/30"
       onClick={handleClick}
     >
       {address === author.name && (
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors z-10"
+          className="absolute top-2 right-2 p-2 bg-destructive/90 text-white rounded-lg hover:bg-destructive transition-colors z-10"
         >
           <Trash2 className="w-5 h-5" />
         </button>
@@ -132,49 +132,52 @@ export const CardProject = ({
           }}
         />
       </div>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">{content}</p>
+      
+      <div className="p-4 space-y-4">
+        <div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+          <p className="text-muted-foreground text-sm line-clamp-2">{content}</p>
+        </div>
         
-        <div className="mb-4">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-400">Đã huy động</span>
-            <span className="text-white">{raised} ETH</span>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Đã huy động</span>
+            <span className="text-foreground font-medium">{raised} ETH</span>
           </div>
           <Progress value={percentage} className="h-2" />
-          <div className="flex justify-between text-sm mt-2">
-            <span className="text-gray-400">Mục tiêu</span>
-            <span className="text-white">{target} ETH</span>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Mục tiêu</span>
+            <span className="text-foreground font-medium">{target} ETH</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage src={author.avatar} />
             <AvatarFallback>{author.name.slice(0, 2)}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm text-gray-400">Tạo bởi</p>
-            <p className="text-white font-medium">{author.name}</p>
+            <p className="text-sm text-muted-foreground">Tạo bởi</p>
+            <p className="text-foreground font-medium">{author.name}</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-700 pt-4">
-          <div className="flex items-center gap-2 text-gray-400">
+        <div className="flex items-center justify-between border-t border-border/30 pt-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4" />
             <span className="text-sm">{remainingDays} ngày còn lại</span>
           </div>
-          <div className="flex items-center gap-2 text-gray-400">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Users className="w-4 h-4" />
             <span className="text-sm">{donators?.length || 0} người ủng hộ</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center gap-2">
           <button 
             onClick={handleLike}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              isLiked ? 'bg-red-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              isLiked ? 'bg-destructive/90 text-white' : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
             }`}
           >
             <Heart className="w-4 h-4" />
@@ -182,14 +185,14 @@ export const CardProject = ({
           </button>
           <button 
             onClick={handleShare}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-muted/30 text-muted-foreground rounded-lg hover:bg-muted/50 transition-colors"
           >
             <Share2 className="w-4 h-4" />
             <span className="text-sm">Chia sẻ</span>
           </button>
           <button 
             onClick={handleClick}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-hufa/90 text-black rounded-lg hover:bg-hufa transition-colors font-medium"
           >
             <MessageCircle className="w-4 h-4" />
             <span className="text-sm">Xem chi tiết</span>
@@ -199,3 +202,5 @@ export const CardProject = ({
     </div>
   )
 }
+
+export default CardProject

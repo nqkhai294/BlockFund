@@ -60,12 +60,11 @@ const CreateProject = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-white mb-8">Tạo Dự Án Mới</h1>
-
-      <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-400 mb-2">
+    <div className="container mx-auto px-16 py-16">
+      <h1 className="text-3xl font-bold text-foreground mb-8">Tạo Dự Án Mới</h1>
+      <form onSubmit={handleSubmit} className="max-w-full space-y-6">
+        <div className="space-y-2">
+          <label htmlFor="title" className="block text-sm font-medium text-muted-foreground">
             Tên Dự Án
           </label>
           <input
@@ -75,13 +74,13 @@ const CreateProject = () => {
             value={formData.title}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
             placeholder="Nhập tên dự án"
           />
         </div>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-400 mb-2">
+        <div className="space-y-2">
+          <label htmlFor="description" className="block text-sm font-medium text-muted-foreground">
             Mô Tả
           </label>
           <textarea
@@ -91,13 +90,13 @@ const CreateProject = () => {
             onChange={handleChange}
             required
             rows={4}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
             placeholder="Mô tả chi tiết về dự án của bạn"
           />
         </div>
 
-        <div>
-          <label htmlFor="target" className="block text-sm font-medium text-gray-400 mb-2">
+        <div className="space-y-2">
+          <label htmlFor="target" className="block text-sm font-medium text-muted-foreground">
             Số Tiền Cần Huy Động (ETH)
           </label>
           <input
@@ -109,14 +108,14 @@ const CreateProject = () => {
             required
             min="0"
             step="0.01"
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
             placeholder="Nhập số tiền cần huy động"
           />
-          <p className="mt-1 text-sm text-gray-500">Ví dụ: Nhập 1.5 cho 1.5 ETH</p>
+          <p className="text-sm text-muted-foreground">Ví dụ: Nhập 1.5 cho 1.5 ETH</p>
         </div>
 
-        <div>
-          <label htmlFor="deadline" className="block text-sm font-medium text-gray-400 mb-2">
+        <div className="space-y-2">
+          <label htmlFor="deadline" className="block text-sm font-medium text-muted-foreground">
             Thời Hạn (ngày)
           </label>
           <input
@@ -127,31 +126,31 @@ const CreateProject = () => {
             onChange={handleChange}
             required
             min="1"
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
             placeholder="Nhập số ngày cần huy động"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-muted-foreground">
             Ảnh Dự Án
           </label>
           <UploadImage onImageUploaded={(url) => setFormData(prev => ({ ...prev, image: url }))} />
         </div>
 
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500 rounded-lg">
-            <p className="text-red-500">{error}</p>
+          <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <p className="text-destructive">{error}</p>
           </div>
         )}
 
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
+          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
             isLoading 
-              ? 'bg-gray-600 cursor-not-allowed' 
-              : 'bg-amber-500 hover:bg-amber-600'
+              ? 'bg-muted/30 text-muted-foreground cursor-not-allowed' 
+              : 'bg-hufa/90 text-black hover:bg-hufa'
           }`}
         >
           {isLoading ? 'Đang tạo...' : 'Tạo Dự Án'}

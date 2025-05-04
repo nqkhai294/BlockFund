@@ -1,6 +1,6 @@
 'use client'
 
-import { Copy } from 'lucide-react'
+import { Copy, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 
 const TokenInfo = () => {
@@ -16,62 +16,64 @@ const TokenInfo = () => {
   }
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-white mb-2">HUFA Token</h2>
-        <p className="text-gray-400">
-          Tham gia vào hành trình phát triển của BlockFund bằng cách sở hữu token HUFA. Mỗi token bạn nắm giữ không chỉ là một khoản đầu tư, mà còn là sự ủng hộ cho tương lai của nền tảng huy động vốn phi tập trung. Nếu bạn muốn ủng hộ chúng tôi, hãy chuyển token HUFA của bạn đến địa chỉ sau:
+    <div className="bg-secondary/30 backdrop-blur-sm rounded-xl p-6 space-y-6 border border-border/30">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground">HUFA Token</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Tham gia vào hành trình phát triển của BlockFund bằng cách sở hữu token HUFA. Mỗi token bạn nắm giữ không chỉ là một khoản đầu tư, mà còn là sự ủng hộ cho tương lai của nền tảng huy động vốn phi tập trung.
         </p>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-2">Token Contract Address (BSC)</h3>
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-foreground">Token Contract Address (BSC)</h3>
           <div className="flex items-center gap-2">
-            <code className="bg-gray-900 px-3 py-2 rounded-lg text-gray-300 flex-1">
+            <code className="bg-muted/30 px-4 py-2.5 rounded-lg text-foreground flex-1 font-mono text-sm">
               {tokenAddress}
             </code>
             <button
               onClick={() => copyToClipboard(tokenAddress)}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2.5 hover:bg-muted/30 rounded-lg transition-colors"
             >
-              <Copy className="w-5 h-5 text-gray-400" />
+              <Copy className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-2">Donation Address</h3>
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-foreground">Donation Address</h3>
           <div className="flex items-center gap-2">
-            <code className="bg-gray-900 px-3 py-2 rounded-lg text-gray-300 flex-1">
+            <code className="bg-muted/30 px-4 py-2.5 rounded-lg text-foreground flex-1 font-mono text-sm">
               {donationAddress}
             </code>
             <button
               onClick={() => copyToClipboard(donationAddress)}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2.5 hover:bg-muted/30 rounded-lg transition-colors"
             >
-              <Copy className="w-5 h-5 text-gray-400" />
+              <Copy className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <a
           href={`https://bscscan.com/token/${tokenAddress}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 bg-amber-500 text-white px-4 py-2 rounded-lg text-center hover:bg-amber-600 transition-colors"
+          className="flex items-center justify-center gap-2 bg-hufa/90 text-black px-4 py-2.5 rounded-lg hover:bg-hufa transition-colors font-medium"
         >
-          View on BscScan
+          <ExternalLink className="w-4 h-4" />
+          <span>View on BscScan</span>
         </a>
         <a
           href={pancakeSwapLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 bg-amber-500 text-white px-4 py-2 rounded-lg text-center hover:bg-amber-600 transition-colors"
+          className="flex items-center justify-center gap-2 bg-hufa/90 text-black px-4 py-2.5 rounded-lg hover:bg-hufa transition-colors font-medium"
         >
-          Buy on PancakeSwap
+          <ExternalLink className="w-4 h-4" />
+          <span>Buy on PancakeSwap</span>
         </a>
       </div>
     </div>

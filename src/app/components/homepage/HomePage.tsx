@@ -3,22 +3,43 @@
 import Footer from "../layout/Footer";
 import Feature from "./sections/Feature";
 import Hero from "./sections/Hero";
-import HowItWork from "./sections/HowItWork";
+import HpHowItWorks from "./sections/HowItWork";
 import Testimonial from "./sections/Testinomial";
 import TokenInfo from "./sections/TokenInfo";
+import FeaturedProjects from "./sections/FeaturedProjects";
+import { useCrowdfunding } from "@/app/hooks/useCrowdfunding";
+import { useEffect, useState } from "react";
 
 const HomePage = () => {
+  const { campaigns, isLoadingCampaigns } = useCrowdfunding();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <div className="block">
-      <Hero />
-      <Feature />
-      <HowItWork />
-      <Testimonial />
-      <div className="bg-gray-900 py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <TokenInfo />
-          </div>
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Hero />
+        <div className="py-20">
+          <FeaturedProjects />
+        </div>
+        <div className="py-20">
+          <Feature />
+        </div>
+        <div className="py-20">
+          <HpHowItWorks />
+        </div>
+        <div className="py-20">
+          <Testimonial />
+        </div>
+        <div className="py-20">
+          <TokenInfo />
         </div>
       </div>
       <Footer />

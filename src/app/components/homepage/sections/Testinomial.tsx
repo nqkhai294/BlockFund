@@ -62,7 +62,7 @@ export function HpTestimonials() {
                 </div>
               </div>
               <p className="text-gray-400">"{testimonial.content}"</p>
-              <div className="flex mt-4 text-yellow-400">
+              <div className="flex justify-center gap-5 mt-4 text-yellow-400">
                 {Array.from({ length: testimonial.stars }).map((_, i) => (
                   <Star key={i} size={20} fill="currentColor" />
                 ))}

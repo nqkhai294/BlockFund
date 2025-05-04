@@ -4,8 +4,8 @@
 
 :root {
 	--foreground-rgb: 255, 255, 255;
-	--background-start-rgb: 19, 19, 26;
-	--background-end-rgb: 19, 19, 26;
+	--background-start-rgb: 30, 30, 40;
+	--background-end-rgb: 35, 35, 45;
 }
 
 body {
@@ -16,6 +16,39 @@ body {
 		rgb(var(--background-end-rgb))
 	);
 	min-height: 100vh;
+}
+
+@layer base {
+	:root {
+		--background: 240 10% 13.9%;
+		--foreground: 0 0% 98%;
+		--card: 240 10% 13.9%;
+		--card-foreground: 0 0% 98%;
+		--popover: 240 10% 13.9%;
+		--popover-foreground: 0 0% 98%;
+		--primary: 45 93% 47%;
+		--primary-foreground: 0 0% 9%;
+		--secondary: 240 3.7% 25.9%;
+		--secondary-foreground: 0 0% 98%;
+		--muted: 240 3.7% 25.9%;
+		--muted-foreground: 240 5% 64.9%;
+		--accent: 240 3.7% 25.9%;
+		--accent-foreground: 0 0% 98%;
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 0 0% 98%;
+		--border: 240 3.7% 25.9%;
+		--input: 240 3.7% 25.9%;
+		--ring: 45 93% 47%;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
 }
 
 @font-face {

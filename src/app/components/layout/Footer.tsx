@@ -1,8 +1,37 @@
 "use client";
 
-import { FaTwitter, FaGithub, FaLinkedin } from "react-icons/fa";
+import Link from "next/link";
+import { Facebook, Github, Linkedin, Twitter } from "lucide-react";
 import Logo from "./navbar/Logo";
 import Container from "../Container";
+
+const footerLinks = {
+  platform: [
+    { name: "Features", href: "/features" },
+    { name: "Projects", href: "/projects" },
+    { name: "Services", href: "/services" },
+    { name: "About us", href: "/about" }
+  ],
+  resources: [
+    { name: "Documentation", href: "/docs" },
+    { name: "Blog", href: "/blog" },
+    { name: "FAQ", href: "/faq" },
+    { name: "Support", href: "/support" }
+  ],
+  legal: [
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Cookie Policy", href: "/cookies" },
+    { name: "Disclaimers", href: "/disclaimers" }
+  ]
+};
+
+const socialLinks = [
+  { name: "Facebook", icon: Facebook, href: "https://facebook.com" },
+  { name: "Twitter", icon: Twitter, href: "https://twitter.com" },
+  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com" },
+  { name: "GitHub", icon: Github, href: "https://github.com" }
+];
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -22,9 +51,17 @@ export function Footer() {
                 a transparent funding platform.
               </p>
               <div className="flex gap-4 mt-4 text-gray-400">
-                <FaTwitter className="hover:text-white cursor-pointer size-6" />
-                <FaGithub className="hover:text-white cursor-pointer size-6" />
-                <FaLinkedin className="hover:text-white cursor-pointer size-6" />
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <social.icon className="w-5 h-5" />
+                  </a>
+                ))}
               </div>
             </div>
 
@@ -33,52 +70,46 @@ export function Footer() {
               <div>
                 <h4 className="font-semibold mb-2">Platform</h4>
                 <ul className="space-y-1 text-gray-400">
-                  <li>
-                    <a href="#features">Features</a>
-                  </li>
-                  <li>
-                    <a href="#projects">Projects</a>
-                  </li>
-                  <li>
-                    <a href="#how-it-works">Services</a>
-                  </li>
-                  <li>
-                    <a href="#">About us</a>
-                  </li>
+                  {footerLinks.platform.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        href={link.href}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Resources</h4>
                 <ul className="space-y-1 text-gray-400">
-                  <li>
-                    <a href="#">Documentation</a>
-                  </li>
-                  <li>
-                    <a href="#">Blog</a>
-                  </li>
-                  <li>
-                    <a href="#">FAQ</a>
-                  </li>
-                  <li>
-                    <a href="#">Support</a>
-                  </li>
+                  {footerLinks.resources.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        href={link.href}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Legal</h4>
                 <ul className="space-y-1 text-gray-400">
-                  <li>
-                    <a href="#">Privacy Policy</a>
-                  </li>
-                  <li>
-                    <a href="#">Terms of Service</a>
-                  </li>
-                  <li>
-                    <a href="#">Cookie Policy</a>
-                  </li>
-                  <li>
-                    <a href="#">Disclaimers</a>
-                  </li>
+                  {footerLinks.legal.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        href={link.href}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>

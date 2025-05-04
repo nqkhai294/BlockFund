@@ -25,25 +25,26 @@ const WalletConnect = () => {
     return (
       <Dialog.Root>
         <Dialog.Trigger asChild>
-          <button className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-2 rounded-lg shadow-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200">
+          <button className="bg-hufa text-black hover:bg-hufa-light px-4 py-2 rounded-md text-sm font-medium transition-colors">
             Connect Wallet
           </button>
         </Dialog.Trigger>
+
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 p-8 rounded-xl shadow-2xl border border-gray-800 max-w-md w-full">
+          <Dialog.Overlay className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card p-8 rounded-xl shadow-2xl border border-border max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
-              <Dialog.Title className="text-white text-2xl font-bold">
+              <Dialog.Title className="text-foreground text-2xl font-bold">
                 Connect Your Wallet
               </Dialog.Title>
               <Dialog.Close asChild>
-                <button className="text-gray-400 hover:text-white transition-colors">
+                <button className="text-muted-foreground hover:text-foreground transition-colors">
                   <X size={24} />
                 </button>
               </Dialog.Close>
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-lg flex justify-center items-center">
+            <div className="bg-muted p-6 rounded-lg flex justify-center items-center">
               <ConnectWallet 
                 theme="dark"
                 btnTitle="Connect Wallet"
@@ -52,12 +53,12 @@ const WalletConnect = () => {
               />
             </div>
 
-            <div className="mt-6 text-center text-gray-400 text-sm">
+            <div className="mt-6 text-center text-muted-foreground text-sm">
               <p>By connecting your wallet, you agree to our</p>
               <div className="flex justify-center gap-2 mt-2">
-                <a href="#" className="text-amber-400 hover:text-amber-300">Terms of Service</a>
+                <a href="#" className="text-hufa hover:text-hufa-light">Terms of Service</a>
                 <span>and</span>
-                <a href="#" className="text-amber-400 hover:text-amber-300">Privacy Policy</a>
+                <a href="#" className="text-hufa hover:text-hufa-light">Privacy Policy</a>
               </div>
             </div>
 
@@ -83,29 +84,29 @@ const WalletConnect = () => {
   return (
     <div className="relative">
       <button 
-        className="bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-3 w-full"
+        className="bg-secondary px-4 py-2 rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-3 w-full"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex flex-col items-end">
-          <span className="text-gray-300 text-sm">
+          <span className="text-foreground text-sm">
             {balance?.displayValue} {balance?.symbol}
           </span>
-          <span className="text-gray-400 text-xs">
+          <span className="text-muted-foreground text-xs">
             {address.slice(0, 6)}...{address.slice(-4)}
           </span>
         </div>
-        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+        <div className="w-2 h-2 bg-hufa rounded-full"></div>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
-          <div className="p-3 border-b border-gray-700">
-            <div className="text-sm text-gray-400">Connected with {chain?.name}</div>
+        <div className="absolute right-0 mt-2 w-64 bg-secondary rounded-lg shadow-xl border border-border">
+          <div className="p-3 border-b border-border">
+            <div className="text-sm text-muted-foreground">Connected with {chain?.name}</div>
           </div>
 
           <div className="p-2">
             <button 
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded cursor-pointer"
               onClick={copyAddress}
             >
               <Copy size={16} />
@@ -116,21 +117,21 @@ const WalletConnect = () => {
               href={`https://etherscan.io/address/${address}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded cursor-pointer"
             >
               <ExternalLink size={16} />
               <span>View on Explorer</span>
             </a>
 
-            <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded cursor-pointer">
+            <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded cursor-pointer">
               <Settings size={16} />
               <span>Settings</span>
             </button>
 
-            <div className="h-px bg-gray-700 my-1"></div>
+            <div className="h-px bg-border my-1"></div>
 
             <button 
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-gray-700 rounded cursor-pointer"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted rounded cursor-pointer"
               onClick={() => {
                 disconnect()
                 setIsOpen(false)
