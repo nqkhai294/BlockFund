@@ -5,9 +5,23 @@ import Image from "next/image"
 import { Progress } from "../ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { useCrowdfunding } from "@/app/hooks/useCrowdfunding"
-import { Trash2, Heart, Share2, MessageCircle, Clock, Users } from "lucide-react"
-import { useState } from "react"
+import { Trash2, Heart, Share2, MessageCircle, Clock, Users, Coins } from "lucide-react"
+import { useState, useEffect } from "react"
 import { daysLeft } from "@/app/utils"
+import { Button } from "../ui/button"
+import { toast } from "react-hot-toast"
+import { useContract, useContractRead, useContractWrite } from "@thirdweb-dev/react"
+import { ethers } from "ethers"
+import { Input } from "../ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog"
 
 interface CardProjectProps {
   id: string
@@ -17,7 +31,7 @@ interface CardProjectProps {
   target: number | string
   raised: number | string
   deadline: string
-  donators?: string[]
+  initialDonators?: string[]
   author: {
     name: string
     avatar: string
@@ -32,15 +46,63 @@ const CardProject = ({
   target,
   raised,
   deadline,
-  donators = [],
+  initialDonators = [],
   author,
 }: CardProjectProps) => {
   const router = useRouter()
   const { address, deleteCampaign } = useCrowdfunding()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
-  const percentage = (Number(raised) / Number(target)) * 100
-  const remainingDays = daysLeft(parseInt(deadline))
+  const [campaignData, setCampaignData] = useState<any>(null)
+  const [donatorInfo, setDonatorInfo] = useState<{
+    addresses: string[]
+    amounts: string[]
+  }>({ addresses: [], amounts: [] })
+  const [profitInfo, setProfitInfo] = useState<{
+    donationAmount: string
+    profitShare: string
+    lastClaim: string
+  }>({ donationAmount: '0', profitShare: '0', lastClaim: '0' })
+  const [isLoading, setIsLoading] = useState(true)
+  const [amount, setAmount] = useState("")
+  const [isDonating, setIsDonating] = useState(false)
+
+  const { contract } = useContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS)
+  const { data: campaign } = useContractRead(contract, "campaigns", [id])
+  const { data: donatorsData } = useContractRead(contract, "getDonators", [id])
+  const { data: donatorProfit } = useContractRead(
+    contract, 
+    "getDonatorProfitInfo", 
+    [id, address]
+  )
+  const { mutateAsync: donate } = useContractWrite(contract, "donateToCampaign")
+
+  useEffect(() => {
+    if (campaign) {
+      setCampaignData(campaign)
+    }
+    if (donatorsData) {
+      setDonatorInfo({
+        addresses: donatorsData[0],
+        amounts: donatorsData[1].map((amount: any) => ethers.utils.formatEther(amount))
+      })
+    }
+    if (donatorProfit) {
+      setProfitInfo({
+        donationAmount: ethers.utils.formatEther(donatorProfit.donationAmount),
+        profitShare: ethers.utils.formatEther(donatorProfit.profitShare),
+        lastClaim: donatorProfit.lastClaim.toString()
+      })
+    }
+    if (campaign && donatorsData && donatorProfit) {
+      setIsLoading(false)
+    }
+  }, [campaign, donatorsData, donatorProfit])
+
+  const percentage = campaignData ? (Number(campaignData.amountCollected) / Number(campaignData.target)) * 100 : 0
+  const remainingDays = campaignData ? daysLeft(parseInt(campaignData.deadline)) : 0
+  const uniqueDonators = donatorInfo.addresses.length
+  const profitShare = profitInfo ? Number(profitInfo.profitShare) : 0
 
   const handleClick = () => {
     router.push(`/projects/${id}`)
@@ -53,10 +115,11 @@ const CardProject = ({
     try {
       setIsDeleting(true)
       await deleteCampaign(id)
+      toast.success('Xóa dự án thành công!')
       window.location.reload()
     } catch (error) {
       console.error('Error deleting project:', error)
-      alert('Không thể xóa dự án. Vui lòng thử lại sau.')
+      toast.error('Không thể xóa dự án. Vui lòng thử lại sau.')
     } finally {
       setIsDeleting(false)
     }
@@ -65,38 +128,50 @@ const CardProject = ({
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsLiked(!isLiked)
+    toast.success(isLiked ? 'Đã bỏ thích dự án' : 'Đã thích dự án')
   }
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // Implement share functionality
+    const url = window.location.origin + `/projects/${id}`
+    navigator.clipboard.writeText(url)
+    toast.success('Đã sao chép link chia sẻ!')
+  }
+
+  const handleDonate = async () => {
+    if (!amount || Number(amount) <= 0) {
+      toast.error('Vui lòng nhập số ETH hợp lệ')
+      return
+    }
+
+    try {
+      setIsDonating(true)
+      const amountInWei = ethers.utils.parseEther(amount)
+      await donate({ args: [id], overrides: { value: amountInWei } })
+      toast.success('Ủng hộ thành công!')
+      setAmount("")
+    } catch (error) {
+      console.error('Error donating:', error)
+      toast.error('Không thể ủng hộ. Vui lòng thử lại sau.')
+    } finally {
+      setIsDonating(false)
+    }
   }
 
   const getImageUrl = (imageUrl: string) => {
     if (!imageUrl || imageUrl === 'undefined') return '/placeholder.svg'
     
     try {
-      // Nếu là URL IPFS
       if (imageUrl.startsWith('ipfs://')) {
-        // Giữ nguyên toàn bộ đường dẫn sau ipfs://
         const path = imageUrl.replace('ipfs://', '')
-        // Sử dụng public IPFS gateway và giữ nguyên encoding của URL
-        const url = `https://ipfs.io/ipfs/${path}`
-        console.log('IPFS URL:', url)
-        return url
+        return `https://ipfs.io/ipfs/${path}`
       }
       
-      // Nếu là URL thông thường
       if (imageUrl.startsWith('http')) {
-        // Nếu là URL từ ipfscdn.io hoặc các gateway khác, chuyển sang ipfs.io
         if (imageUrl.includes('/ipfs/')) {
-          // Giữ nguyên phần path sau /ipfs/
           const path = imageUrl.substring(imageUrl.indexOf('/ipfs/') + 6)
-          const url = `https://ipfs.io/ipfs/${path}`
-          console.log('Converted IPFS URL:', url)
-          return url
+          return `https://ipfs.io/ipfs/${path}`
         }
-        console.log('HTTP URL:', imageUrl)
         return imageUrl
       }
 
@@ -107,19 +182,40 @@ const CardProject = ({
     }
   }
 
+  const formatRemainingTime = (days: number) => {
+    if (days < 0) return 'Đã kết thúc'
+    if (days === 0) return 'Còn 1 ngày'
+    return `Còn ${days} ngày`
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-secondary/30 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-border/30 animate-pulse">
+        <div className="h-48 bg-gray-700" />
+        <div className="p-4 space-y-4">
+          <div className="h-6 bg-gray-700 rounded w-3/4" />
+          <div className="h-4 bg-gray-700 rounded w-full" />
+          <div className="h-4 bg-gray-700 rounded w-2/3" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div 
       className="bg-secondary/30 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer relative border border-border/30"
       onClick={handleClick}
     >
       {address === author.name && (
-        <button
+        <Button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="absolute top-2 right-2 p-2 bg-destructive/90 text-white rounded-lg hover:bg-destructive transition-colors z-10"
+          variant="destructive"
+          size="icon"
+          className="absolute top-2 right-2 z-10"
         >
           <Trash2 className="w-5 h-5" />
-        </button>
+        </Button>
       )}
       <div className="relative h-48 w-full">
         <img
@@ -131,6 +227,7 @@ const CardProject = ({
             e.currentTarget.src = '/placeholder.svg'
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
       
       <div className="p-4 space-y-4">
@@ -142,12 +239,22 @@ const CardProject = ({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Đã huy động</span>
-            <span className="text-foreground font-medium">{raised} ETH</span>
+            <span className="text-foreground font-medium text-blue-400">
+              {donatorInfo.amounts.join(', ')} ETH
+            </span>
           </div>
           <Progress value={percentage} className="h-2" />
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Mục tiêu</span>
-            <span className="text-foreground font-medium">{target} ETH</span>
+            <span className="text-foreground font-medium">
+              {ethers.utils.formatEther(campaignData?.target || '0')} ETH
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Tỉ lệ lợi nhuận</span>
+            <span className="text-foreground font-medium text-green-400">
+              {profitShare}%
+            </span>
           </div>
         </div>
 
@@ -165,38 +272,81 @@ const CardProject = ({
         <div className="flex items-center justify-between border-t border-border/30 pt-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span className="text-sm">{remainingDays} ngày còn lại</span>
+            <span className="text-sm">{formatRemainingTime(remainingDays)}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Users className="w-4 h-4" />
-            <span className="text-sm">{donators?.length || 0} người ủng hộ</span>
+            <span className="text-sm">{uniqueDonators} người ủng hộ</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <button 
+          <Button 
             onClick={handleLike}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              isLiked ? 'bg-destructive/90 text-white' : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
-            }`}
+            variant={isLiked ? "destructive" : "outline"}
+            size="sm"
+            className="flex-1"
           >
-            <Heart className="w-4 h-4" />
-            <span className="text-sm">Like</span>
-          </button>
-          <button 
+            <Heart className="w-4 h-4 mr-2" />
+            <span>Like</span>
+          </Button>
+          <Button 
             onClick={handleShare}
-            className="flex items-center gap-2 px-4 py-2 bg-muted/30 text-muted-foreground rounded-lg hover:bg-muted/50 transition-colors"
+            variant="outline"
+            size="sm"
+            className="flex-1"
           >
-            <Share2 className="w-4 h-4" />
-            <span className="text-sm">Chia sẻ</span>
-          </button>
-          <button 
-            onClick={handleClick}
-            className="flex items-center gap-2 px-4 py-2 bg-hufa/90 text-black rounded-lg hover:bg-hufa transition-colors font-medium"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span className="text-sm">Xem chi tiết</span>
-          </button>
+            <Share2 className="w-4 h-4 mr-2" />
+            <span>Chia sẻ</span>
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 bg-hufa/90 text-black hover:bg-hufa"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Coins className="w-4 h-4 mr-2" />
+                <span>Ủng hộ</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent onClick={(e) => e.stopPropagation()}>
+              <DialogHeader>
+                <DialogTitle>Ủng hộ dự án</DialogTitle>
+                <DialogDescription>
+                  Nhập số ETH bạn muốn ủng hộ cho dự án này
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Số ETH</label>
+                  <Input
+                    type="number"
+                    placeholder="0.0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>Tỉ lệ lợi nhuận: {profitShare}%</p>
+                  <p>Số tiền đã huy động: {donatorInfo.amounts.join(', ')} ETH</p>
+                  <p>Mục tiêu: {ethers.utils.formatEther(campaignData?.target || '0')} ETH</p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={handleDonate}
+                  disabled={isDonating}
+                  className="w-full"
+                >
+                  {isDonating ? 'Đang xử lý...' : 'Xác nhận ủng hộ'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

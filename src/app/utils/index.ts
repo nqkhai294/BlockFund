@@ -1,28 +1,14 @@
-export const daysLeft = (deadline: number) => {
-  try {
-    // Chuyển đổi deadline từ seconds sang milliseconds
-    const deadlineDate = new Date(deadline * 1000)
-    const currentDate = new Date()
-    
-    // Tính số ngày còn lại
-    const diffTime = deadlineDate.getTime() - currentDate.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
-    return diffDays <= 0 ? 0 : diffDays
-  } catch (error) {
-    console.error('Error calculating days left:', error)
-    return 0
-  }
+import { BigNumber } from 'ethers'
+
+export const calculateBarPercentage = (goal: BigNumber, raisedAmount: BigNumber) => {
+  const percentage = Math.round((Number(raisedAmount) * 100) / Number(goal))
+  return percentage > 100 ? 100 : percentage
 }
 
-export const calculateBarPercentage = (target: string, collected: string) => {
-  try {
-    const percentage = (Number(collected) / Number(target)) * 100
-    return percentage > 100 ? 100 : percentage
-  } catch (error) {
-    console.error('Error calculating percentage:', error)
-    return 0
-  }
+export const daysLeft = (deadline: number) => {
+  const difference = new Date(deadline * 1000).getTime() - Date.now()
+  const remainingDays = difference / (1000 * 60 * 60 * 24)
+  return remainingDays.toFixed(0)
 }
 
 export const checkIfImage = (url: string, callback: (isImage: boolean) => void) => {

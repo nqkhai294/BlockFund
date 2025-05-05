@@ -13,6 +13,7 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState('')
   const [previewUrl, setPreviewUrl] = useState('')
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   
   // Khởi tạo storage với clientId
   const storage = new ThirdwebStorage({
@@ -31,6 +32,36 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
       const tempUrl = URL.createObjectURL(file)
       setPreviewUrl(tempUrl)
 
+      // Lấy kích thước ảnh
+      const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+        return new Promise((resolve, reject) => {
+          const img = document.createElement('img')
+          img.onload = () => {
+            const maxWidth = 800 // Kích thước tối đa cho chiều rộng
+            const maxHeight = 600 // Kích thước tối đa cho chiều cao
+            let width = img.width
+            let height = img.height
+
+            // Tính toán tỷ lệ để giữ nguyên aspect ratio
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width
+              width = maxWidth
+            }
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height
+              height = maxHeight
+            }
+
+            resolve({ width, height })
+          }
+          img.onerror = reject
+          img.src = URL.createObjectURL(file)
+        })
+      }
+
+      const dimensions = await getImageDimensions(file)
+      setImageSize(dimensions)
+
       // Upload file lên IPFS thông qua Thirdweb Storage
       const uri = await storage.upload(file)
       
@@ -41,6 +72,7 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
       console.error('Error uploading image:', error)
       setError('Có lỗi xảy ra khi tải ảnh lên. Vui lòng thử lại.')
       setPreviewUrl('')
+      setImageSize({ width: 0, height: 0 })
     } finally {
       setIsUploading(false)
     }
@@ -48,6 +80,7 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
 
   const handleRemoveImage = () => {
     setPreviewUrl('')
+    setImageSize({ width: 0, height: 0 })
     onImageUploaded('')
   }
 
@@ -55,13 +88,12 @@ export function UploadImage({ onImageUploaded }: UploadImageProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-center w-full">
         {previewUrl ? (
-          <div className="relative h-64 w-full">
-            <Image
+          <div className="relative" style={{ width: imageSize.width, height: imageSize.height }}>
+            <img
               src={previewUrl}
               alt="Preview"
-              fill
-              className="object-cover rounded-lg"
-              unoptimized
+              style={{ width: '100%', height: '100%' }}
+              className="object-contain rounded-lg"
             />
             <button
               onClick={handleRemoveImage}

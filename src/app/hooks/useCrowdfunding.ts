@@ -9,6 +9,242 @@ const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
 
 const CROWDFUNDING_ABI = [
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "target",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "CampaignCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "CampaignDeleted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "CampaignExpired",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "donator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "DonationReceived",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "action",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "HistoryAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "donator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ProfitClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ProfitReported",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "campaignHistories",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "action",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "actor",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "description",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -57,9 +293,76 @@ const CROWDFUNDING_ABI = [
         "internalType": "bool",
         "name": "isActive",
         "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalProfit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastProfitReport",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "profitDistributionPeriod",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "checkCampaignStatus",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isActive",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isExpired",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isCompleted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "canBeDeleted",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "status",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimProfit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -93,6 +396,11 @@ const CROWDFUNDING_ABI = [
         "internalType": "string",
         "name": "_image",
         "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_profitDistributionPeriod",
+        "type": "uint256"
       }
     ],
     "name": "createCampaign",
@@ -133,20 +441,36 @@ const CROWDFUNDING_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getCampaigns",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getCampaignHistory",
     "outputs": [
       {
         "components": [
           {
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
+            "internalType": "uint256",
+            "name": "campaignId",
+            "type": "uint256"
           },
           {
             "internalType": "string",
-            "name": "title",
+            "name": "action",
             "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "actor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
           },
           {
             "internalType": "string",
@@ -155,33 +479,200 @@ const CROWDFUNDING_ABI = [
           },
           {
             "internalType": "uint256",
-            "name": "target",
+            "name": "amount",
             "type": "uint256"
-          },
+          }
+        ],
+        "internalType": "struct CrowdFunding.CampaignHistory[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_action",
+        "type": "string"
+      }
+    ],
+    "name": "getCampaignHistoryByAction",
+    "outputs": [
+      {
+        "components": [
           {
             "internalType": "uint256",
-            "name": "deadline",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amountCollected",
+            "name": "campaignId",
             "type": "uint256"
           },
           {
             "internalType": "string",
-            "name": "image",
+            "name": "action",
             "type": "string"
           },
           {
-            "internalType": "bool",
-            "name": "isActive",
-            "type": "bool"
+            "internalType": "address",
+            "name": "actor",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
           }
         ],
-        "internalType": "struct CrowdFunding.Campaign[]",
+        "internalType": "struct CrowdFunding.CampaignHistory[]",
         "name": "",
         "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getCampaignProfitInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalProfit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastProfitReport",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "profitDistributionPeriod",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nextProfitReport",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getCampaigns",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "owners",
+        "type": "address[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "titles",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "descriptions",
+        "type": "string[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "targets",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "deadlines",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amountCollecteds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "images",
+        "type": "string[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isActives",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "totalProfits",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "lastProfitReports",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "profitDistributionPeriods",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_donator",
+        "type": "address"
+      }
+    ],
+    "name": "getDonatorProfitInfo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "donationAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "profitShare",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastClaim",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -223,6 +714,50 @@ const CROWDFUNDING_ABI = [
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_profitAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "reportProfit",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalHistoryEntries",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawCampaignFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ] as const;
 
@@ -244,76 +779,75 @@ export const useCrowdfunding = () => {
   const { mutateAsync: donate } = useContractWrite(contract, "donateToCampaign")
 
   useEffect(() => {
-    if (!isLoading) {
-      if (error) {
-        console.error("Error fetching campaigns:", error)
-        setIsLoadingCampaigns(false)
-        return
-      }
+    if (!isLoading && campaignsData) {
+      try {
+        console.log("Raw campaigns data:", campaignsData) // Debug log
 
-      if (campaignsData) {
-        try {
-          console.log("Raw campaigns data:", campaignsData) // Debug
-
-          const formattedCampaigns = campaignsData
-            .filter((campaign: any) => campaign.isActive)
-            .map((campaign: any, index: number) => {
-              console.log(`Campaign ${index}:`, campaign) // Debug
-              
-              return {
-                id: index.toString(),
-                owner: campaign.owner?.toString() || '',
-                title: campaign.title || '',
-                description: campaign.description || '',
-                target: ethers.utils.formatEther(campaign.target?.toString() || '0'),
-                deadline: campaign.deadline?.toString() || '0',
-                amountCollected: ethers.utils.formatEther(campaign.amountCollected?.toString() || '0'),
-                image: campaign.image || '',
-                donators: campaign.donators || [],
-                donations: campaign.donations || [],
-                daysLeft: daysLeft(parseInt(campaign.deadline?.toString() || '0')),
-                percentage: calculateBarPercentage(
-                  campaign.target?.toString() || '0',
-                  campaign.amountCollected?.toString() || '0'
-                )
-              }
-            })
+        // Chuyển đổi dữ liệu từ mảng riêng biệt thành mảng các object
+        const formattedCampaigns = Array.from({ length: campaignsData.owners.length }, (_, index) => {
+          const campaign = {
+            id: index.toString(),
+            owner: campaignsData.owners[index]?.toString() || '',
+            title: campaignsData.titles[index] || '',
+            description: campaignsData.descriptions[index] || '',
+            target: ethers.utils.formatEther(campaignsData.targets[index]?.toString() || '0'),
+            deadline: campaignsData.deadlines[index]?.toString() || '0',
+            amountCollected: ethers.utils.formatEther(campaignsData.amountCollecteds[index]?.toString() || '0'),
+            image: campaignsData.images[index] || '',
+            isActive: campaignsData.isActives[index] || false,
+            totalProfit: ethers.utils.formatEther(campaignsData.totalProfits[index]?.toString() || '0'),
+            lastProfitReport: campaignsData.lastProfitReports[index]?.toString() || '0',
+            profitDistributionPeriod: campaignsData.profitDistributionPeriods[index]?.toString() || '0',
+            daysLeft: daysLeft(parseInt(campaignsData.deadlines[index]?.toString() || '0')),
+            percentage: calculateBarPercentage(
+              campaignsData.targets[index]?.toString() || '0',
+              campaignsData.amountCollecteds[index]?.toString() || '0'
+            )
+          };
           
-          console.log("Formatted campaigns:", formattedCampaigns) // Debug
-          setCampaigns(formattedCampaigns)
-        } catch (error) {
-          console.error("Error formatting campaigns:", error)
-        }
+          console.log(`Campaign ${index}:`, campaign) // Debug log
+          return campaign;
+        }).filter(campaign => campaign.isActive);
+        
+        console.log("Formatted campaigns:", formattedCampaigns) // Debug log
+        setCampaigns(formattedCampaigns)
+      } catch (error) {
+        console.error("Error formatting campaigns:", error)
       }
       setIsLoadingCampaigns(false)
     }
   }, [campaignsData, isLoading, error])
 
-  const createNewCampaign = async (
-    title: string,
-    description: string,
-    target: string,
-    deadline: number,
-    image: string
-  ) => {
-    if (!address) {
-      throw new Error("Please connect your wallet first")
-    }
-
+  const createNewCampaign = async (campaignData: { 
+    owner: string; 
+    title: string; 
+    description: string; 
+    target: any; // Changed from string to any to accept BigNumber
+    deadline: number; 
+    image: string; 
+    profitDistributionPeriod: number 
+  }) => {
+    const { owner, title, description, target, deadline, image, profitDistributionPeriod } = campaignData;
+    
     try {
-      setIsTransacting(true)
-      const targetInWei = ethers.utils.parseEther(target)
-      const data = await createCampaign({
-        args: [address, title, description, targetInWei, deadline, image],
-      })
-      return data
+      if (!contract) {
+        throw new Error("Contract is not initialized");
+      }
+      const tx = await contract.call("createCampaign", [
+        owner,
+        title,
+        description,
+        target,
+        deadline,
+        image,
+        profitDistributionPeriod
+      ]);
+      return tx;
     } catch (error) {
-      console.log("Error creating campaign:", error)
-      throw error
-    } finally {
-      setIsTransacting(false)
+      console.error("Error creating project:", error);
+      throw error;
     }
-  }
+  };
 
   const deleteCampaignById = async (campaignId: string) => {
     try {
