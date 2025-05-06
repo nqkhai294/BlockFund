@@ -1,0 +1,9 @@
+# the DOMAIN is the domain of the application
+NEXT_PUBLIC_THIRDWEB_AUTH_DOMAIN=localhost:3000
+# Get your client id from the thirdweb dashboard: https://thirdweb.com/create-api-key
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID=c0b67aab9a5575cbd205968f83b6c2ab
+# Get your secret key from the thirdweb dashboard: https://thirdweb.com/create-api-key
+THIRDWEB_SECRET_KEY=6n-e_KNpkzUDHV0NCYf59qEOCE0FGACilXr_7IzEOnDKEucY-H7L3y1C674MhvwP4HWcV-Sjm9KWaubDkpvYhw
+# A private key that will be used to sign the JWT for the `jwt-cookie` authentication method
+# this does *not* need to hold any funds, just needs to be a valid private key to sign with
+THIRDWEB_ADMIN_PRIVATE_KEY=5bc67655fc3c0b72ed26413cc07a0905dde88a732fd09e3e52d8571950812e43

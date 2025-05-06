@@ -80,7 +80,7 @@ const Feature = () => {
   ];
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-black text-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 border-b-[1px] border-b-gray border-t-[1px] border-t-gray">
       <div className="max-w-7xl w-full">
       <h1 className="text-4xl md:text-5xl font-bold text-center mb-2">Revolutionary Features</h1>
         <h2 className="text-xl md:text-2xl font-semibold text-center mb-3">Platform Features</h2>

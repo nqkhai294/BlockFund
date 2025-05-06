@@ -349,7 +349,7 @@ const ProjectDetail = ({
                 <button
                   onClick={handleContribute}
                   disabled={isSubmitting || isDonating || remainingDays <= 0}
-                  className="w-full rounded-lg bg-amber-400 px-6 py-3 text-sm font-medium text-black hover:bg-amber-500 disabled:opacity-50"
+                  className="w-full rounded-lg bg-amber-400 px-6 py-3 text-sm font-medium text-black hover:bg-amber-500 "
                 >
                   {isSubmitting || isDonating ? "Đang xử lý..." : "Đóng góp ngay"}
                 </button>

@@ -1,7 +1,7 @@
 'use client'
 
 import Container from "../Container"
-import { CardProject } from "./Cardproject"
+import  CardProject  from "./CardProject"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
@@ -13,7 +13,7 @@ interface Campaign {
   title: string
   description: string
   target: string
-  deadline: number
+  deadline: string
   amountCollected: string
   image: string
   donators: string[]
@@ -88,6 +88,7 @@ const Project = () => {
                 content={project.description}
                 target={parseFloat(ethers.utils.formatEther(project.target))}
                 raised={parseFloat(ethers.utils.formatEther(project.amountCollected))}
+                deadline={project.deadline}
                 author={{
                   name: project.owner.slice(0, 6) + "..." + project.owner.slice(-4),
                   avatar: "/placeholder.svg"

@@ -1,4 +1,9 @@
+import {useRouter} from "next/navigation";
+
 export function HpHowItWorks() {
+
+    const router = useRouter();
+
     const steps = [
       {
         title: "Create a Project",
@@ -27,7 +32,7 @@ export function HpHowItWorks() {
     ];
   
     return (
-      <section id="how-it-works" className="py-20 bg-black text-white">
+      <section id="how-it-works" className="py-20 bg-black text-white border-b-[1px] border-b-gray">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">How BlockFund works</h2>
           <p className="text-lg text-gray-400 mb-16">
@@ -81,7 +86,9 @@ export function HpHowItWorks() {
           </div>
   
           <div className="mt-16 text-center">
-            <button className="bg-white text-black hover:bg-amber-400 text-lg font-medium px-6 py-3 rounded-3xl bg-gradient-to-r border border-gray-600 shadow hover:scale-105 transition-transform cursor-pointer">
+            <button
+              onClick={() => router.push("/projects")}
+            className="bg-white text-black hover:bg-amber-400 text-lg font-medium px-6 py-3 rounded-3xl bg-gradient-to-r border border-gray-600 shadow hover:scale-105 transition-transform cursor-pointer">
               Get Started Today
             </button>
           </div>

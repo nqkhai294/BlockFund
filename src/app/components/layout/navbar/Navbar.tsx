@@ -8,7 +8,7 @@ const Navbar = () => {
   const router = useRouter()
 
   return (
-    <div className="fixed w-full bg-background z-10 shadow-lg border-b border-border">
+    <div className="fixed w-full bg-black z-10 shadow-lg border-b border-border">
       <div className="py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
@@ -18,7 +18,7 @@ const Navbar = () => {
                 alt="BlockFund Logo"
                 width={175}
                 height={175}
-                className="rounded-full shadow-md"
+                className="shadow-md"
               />
             </div>
 
@@ -38,13 +38,13 @@ const Navbar = () => {
               </div>
               <div 
                 className="text-lg px-6 cursor-pointer hover:text-hufa transition-colors duration-200" 
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/services")}
               >
                 Services
               </div>
               <div 
                 className="text-lg px-6 cursor-pointer hover:text-hufa transition-colors duration-200" 
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/about")}
               >
                 About us
               </div>
