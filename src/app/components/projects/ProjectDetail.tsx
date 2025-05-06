@@ -2,13 +2,17 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Clock, Users, Calendar, ArrowRight } from "lucide-react"
+import { Clock, Users, Calendar, ArrowRight, Rocket } from "lucide-react"
 import Container from "../Container"
 import { useCrowdfunding } from "@/app/hooks/useCrowdfunding"
-import { ethers } from "ethers"
+import { ethers, BigNumber } from "ethers"
 import { daysLeft, calculateBarPercentage } from '@/app/utils'
 import { useRouter } from 'next/navigation'
 import { InvestorsSection } from './InvestorsSection'
+import { useContract, useContractRead, useAddress } from "@thirdweb-dev/react"
+import { Button } from '../ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog'
+import { toast } from 'react-hot-toast'
 
 interface Comment {
   id: string
@@ -63,10 +67,35 @@ const ProjectDetail = ({
   const [donators, setDonators] = useState<string[]>(initialDonators)
   const [donations, setDonations] = useState<string[]>(initialDonations)
   const router = useRouter()
+  const address = useAddress()
   const { donateToCampaign, isDonating, getDonators } = useCrowdfunding()
+  const [isRequestingFunds, setIsRequestingFunds] = useState(false)
+  const [showRequestDialog, setShowRequestDialog] = useState(false)
+  const [requestReason, setRequestReason] = useState("")
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [withdrawAmount, setWithdrawAmount] = useState("")
+  const [isClaiming, setIsClaiming] = useState(false)
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
+  const [campaignData, setCampaignData] = useState<any>(null)
 
-  const remainingDays = daysLeft(deadline)
-  const percentage = calculateBarPercentage(target, amountCollected)
+  const { contract } = useContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS)
+  const { data: campaignStatus } = useContractRead(contract, "checkCampaignStatus", [id])
+  const { data: donatorProfit } = useContractRead(
+    contract, 
+    "getDonatorProfitInfo", 
+    [id, address || "0x0"]
+  )
+  const { data: profitInfo } = useContractRead(contract, "getCampaignProfitInfo", [id])
+
+  const remainingDays = daysLeft(Number(deadline))
+  const percentage = calculateBarPercentage(
+    ethers.utils.parseEther(target.toString()),
+    ethers.utils.parseEther(amountCollected.toString())
+  )
+
+  const canWithdraw = campaignStatus?.isCompleted && owner === address
+  const canClaim = donatorProfit && Number(donatorProfit.profitShare) > 0 && 
+    (Number(donatorProfit.lastClaim) + Number(profitInfo?.profitDistributionPeriod || 0) <= Date.now()/1000)
 
   // Cập nhật danh sách nhà đầu tư khi có thay đổi
   useEffect(() => {
@@ -145,6 +174,62 @@ const ProjectDetail = ({
       setErrorMessage("Đã xảy ra lỗi khi thêm bình luận. Vui lòng thử lại.")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleRequestFastFunding = async () => {
+    if (!requestReason.trim()) {
+      toast.error("Vui lòng nhập lý do cần huy động vốn nhanh")
+      return
+    }
+
+    try {
+      setIsRequestingFunds(true)
+      // TODO: Thêm hàm requestFastFunding vào contract
+      // await contract.call("requestFastFunding", [id, requestReason])
+      toast.success("Đã gửi yêu cầu huy động vốn nhanh!")
+      setShowRequestDialog(false)
+      setRequestReason("")
+    } catch (error) {
+      console.error("Lỗi khi yêu cầu huy động vốn nhanh:", error)
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại.")
+    } finally {
+      setIsRequestingFunds(false)
+    }
+  }
+
+  const handleClaimProfit = async () => {
+    if (!canClaim || !contract) return
+
+    try {
+      setIsClaiming(true)
+      const tx = await contract.call("claimProfit", [id])
+      await tx.wait()
+      toast.success("Đã nhận lợi nhuận thành công!")
+    } catch (error) {
+      console.error("Lỗi khi nhận lợi nhuận:", error)
+      toast.error("Không thể nhận lợi nhuận. Vui lòng thử lại sau.")
+    } finally {
+      setIsClaiming(false)
+    }
+  }
+
+  const handleWithdraw = async () => {
+    if (!canWithdraw || !withdrawAmount || !contract) return
+
+    try {
+      setIsWithdrawing(true)
+      const amountInWei = ethers.utils.parseEther(withdrawAmount)
+      const tx = await contract.call("withdrawCampaignFunds", [id])
+      await tx.wait()
+      toast.success("Rút tiền thành công!")
+      setShowWithdrawDialog(false)
+      setWithdrawAmount("")
+    } catch (error) {
+      console.error("Lỗi khi rút tiền:", error)
+      toast.error("Không thể rút tiền. Vui lòng thử lại sau.")
+    } finally {
+      setIsWithdrawing(false)
     }
   }
 
@@ -238,6 +323,100 @@ const ProjectDetail = ({
                 </div>
               </div>
               
+              {/* Thêm nút huy động vốn nhanh cho chủ dự án */}
+              {owner === address && (
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setShowRequestDialog(true)}
+                    className="bg-amber-500 hover:bg-amber-600 text-black"
+                  >
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Yêu cầu huy động vốn nhanh
+                  </Button>
+                </div>
+              )}
+
+              {/* Thêm nút rút tiền cho chủ dự án */}
+              {address && owner === address && (
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setShowWithdrawDialog(true)}
+                    className="bg-green-500 hover:bg-green-600 text-black"
+                  >
+                    Rút tiền từ dự án
+                  </Button>
+                </div>
+              )}
+
+              {/* Dialog huy động vốn nhanh */}
+              <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Yêu cầu huy động vốn nhanh</DialogTitle>
+                    <DialogDescription>
+                      Giải thích lý do bạn cần huy động vốn nhanh cho dự án này
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <textarea
+                      value={requestReason}
+                      onChange={(e) => setRequestReason(e.target.value)}
+                      placeholder="Nhập lý do cần huy động vốn nhanh..."
+                      className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                      rows={4}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      onClick={handleRequestFastFunding}
+                      disabled={isRequestingFunds}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-black"
+                    >
+                      {isRequestingFunds ? "Đang gửi..." : "Gửi yêu cầu"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Dialog rút tiền */}
+              <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Rút tiền từ dự án</DialogTitle>
+                    <DialogDescription>
+                      Nhập số tiền bạn muốn rút. Lưu ý đảm bảo đủ tiền trả lãi cho nhà đầu tư.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Số ETH muốn rút</label>
+                      <input
+                        type="number"
+                        value={withdrawAmount}
+                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                        placeholder="0.0"
+                        step="0.01"
+                        min="0"
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Số dư khả dụng: {ethers.utils.formatEther(campaignData?.amountCollected?.toString() || '0')} ETH</p>
+                      <p>Lãi phải trả: {ethers.utils.formatEther(profitInfo?.totalProfit?.toString() || '0')} ETH</p>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      onClick={handleWithdraw}
+                      disabled={isWithdrawing}
+                      className="w-full bg-green-500 hover:bg-green-600 text-black"
+                    >
+                      {isWithdrawing ? "Đang xử lý..." : "Xác nhận rút tiền"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               {/* Nội dung tab */}
               <div className="min-h-[400px]">
                 {/* Tab Giới thiệu */}
@@ -303,10 +482,10 @@ const ProjectDetail = ({
             </div>
           </div>
           
-          {/* Cột phải - Thông tin đóng góp */}
+          {/* Cột phải - Thông tin đóng góp và lợi nhuận */}
           <div className="space-y-6">
             <div className="rounded-xl bg-gray-800 p-6">
-              <h2 className="text-xl font-bold">Đóng góp cho dự án</h2>
+              <h2 className="text-xl font-bold">Thông tin dự án</h2>
               
               <div className="mt-4 space-y-4">
                 <div className="flex items-center justify-between">
@@ -316,7 +495,9 @@ const ProjectDetail = ({
                 
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Đã gọi được</span>
-                  <span className="font-medium">{amountCollected} ETH</span>
+                  <span className="font-medium">
+                    {ethers.utils.formatEther(ethers.utils.parseEther(amountCollected.toString()))} ETH
+                  </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -328,6 +509,65 @@ const ProjectDetail = ({
                   <span className="text-gray-400">Thời gian còn lại</span>
                   <span className="font-medium">{remainingDays} ngày</span>
                 </div>
+
+                {/* Thêm thông tin lợi nhuận */}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Tổng lợi nhuận</span>
+                  <span className="font-medium">
+                    {profitInfo ? ethers.utils.formatEther(profitInfo.totalProfit) : '0'} ETH
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Chu kỳ chia lợi nhuận</span>
+                  <span className="font-medium">
+                    {profitInfo ? Math.floor(Number(profitInfo.profitDistributionPeriod) / (24 * 60 * 60)) : 0} ngày
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Lần chia lợi nhuận tiếp theo</span>
+                  <span className="font-medium">
+                    {profitInfo ? new Date(Number(profitInfo.nextProfitReport) * 1000).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+
+                {/* Thêm phần thông tin và nút claim lợi nhuận cho nhà đầu tư */}
+                {donatorProfit && Number(donatorProfit.donationAmount) > 0 && (
+                  <div className="mt-6 space-y-4 border-t border-gray-700 pt-4">
+                    <h3 className="text-lg font-semibold">Thông tin lợi nhuận</h3>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Số tiền đã đầu tư</span>
+                      <span>{ethers.utils.formatEther(donatorProfit.donationAmount)} ETH</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Lợi nhuận được nhận</span>
+                      <span className="text-green-400">{ethers.utils.formatEther(donatorProfit.profitShare)} ETH</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Lần nhận gần nhất</span>
+                      <span>{new Date(Number(donatorProfit.lastClaim) * 1000).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Lần nhận tiếp theo</span>
+                      <span>
+                        {new Date((Number(donatorProfit.lastClaim) + Number(profitInfo?.profitDistributionPeriod || 0)) * 1000).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <Button
+                      onClick={handleClaimProfit}
+                      disabled={!canClaim || isClaiming}
+                      className="w-full bg-green-500 hover:bg-green-600 text-black disabled:bg-gray-600"
+                    >
+                      {isClaiming ? "Đang xử lý..." : canClaim ? "Nhận lợi nhuận" : "Chưa đến kỳ nhận lợi nhuận"}
+                    </Button>
+                  </div>
+                )}
               </div>
               
               <div className="mt-6 space-y-4">
@@ -348,8 +588,8 @@ const ProjectDetail = ({
                 
                 <button
                   onClick={handleContribute}
-                  disabled={isSubmitting || isDonating || remainingDays <= 0}
-                  className="w-full rounded-lg bg-amber-400 px-6 py-3 text-sm font-medium text-black hover:bg-amber-500 "
+                  disabled={isSubmitting || isDonating || Number(remainingDays) <= 0}
+                  className="w-full rounded-lg bg-amber-400 px-6 py-3 text-sm font-medium text-black hover:bg-amber-500 disabled:opacity-50"
                 >
                   {isSubmitting || isDonating ? "Đang xử lý..." : "Đóng góp ngay"}
                 </button>
