@@ -42,7 +42,6 @@ const HomePage = () => {
           <TokenInfo />
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

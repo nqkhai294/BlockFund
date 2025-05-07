@@ -131,7 +131,7 @@ const WalletConnect = () => {
             <div className="h-px bg-border my-1"></div>
 
             <button 
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted rounded cursor-pointer"
+              className="w-full color:white flex items-center gap-2 px-3 py-2 text-sm  hover:bg-muted rounded cursor-pointer"
               onClick={() => {
                 disconnect()
                 setIsOpen(false)
