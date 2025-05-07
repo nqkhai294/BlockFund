@@ -4,7 +4,7 @@ import Footer from "../layout/Footer";
 import Feature from "./sections/Feature";
 import Hero from "./sections/Hero";
 import HpHowItWorks from "./sections/HowItWork";
-import Testimonial from "./sections/Testinomial";
+import HpTestimonials from "./sections/Testimonial";
 import TokenInfo from "./sections/TokenInfo";
 import FeaturedProjects from "./sections/FeaturedProjects";
 import { useCrowdfunding } from "@/app/hooks/useCrowdfunding";
@@ -36,7 +36,7 @@ const HomePage = () => {
           <HpHowItWorks />
         </div>
         <div className="py-20">
-          <Testimonial />
+          <HpTestimonials />
         </div>
         <div className="py-20">
           <TokenInfo />
