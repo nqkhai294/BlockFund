@@ -13,6 +13,9 @@ import { useContract, useContractRead, useAddress } from "@thirdweb-dev/react"
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog'
 import { toast } from 'react-hot-toast'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
 interface Comment {
   id: string
@@ -77,6 +80,19 @@ const ProjectDetail = ({
   const [isClaiming, setIsClaiming] = useState(false)
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false)
   const [campaignData, setCampaignData] = useState<any>(null)
+  const [availableBalance, setAvailableBalance] = useState("0")
+  const [totalProfit, setTotalProfit] = useState("0")
+  const [reason, setReason] = useState('')
+  const [identityVerification, setIdentityVerification] = useState<File | null>(null)
+  const [collateral, setCollateral] = useState<File | null>(null)
+  const [collateralType, setCollateralType] = useState<'document' | 'token' | 'nft'>('document')
+  const [collateralToken, setCollateralToken] = useState('')
+  const [collateralAmount, setCollateralAmount] = useState('')
+  const [collateralNFT, setCollateralNFT] = useState('')
+  const [collateralNFTId, setCollateralNFTId] = useState('')
+  const [isReportingProfit, setIsReportingProfit] = useState(false)
+  const [profitAmount, setProfitAmount] = useState("")
+  const [showReportProfitDialog, setShowReportProfitDialog] = useState(false)
 
   const { contract } = useContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS)
   const { data: campaignStatus } = useContractRead(contract, "checkCampaignStatus", [id])
@@ -86,6 +102,7 @@ const ProjectDetail = ({
     [id, address || "0x0"]
   )
   const { data: profitInfo } = useContractRead(contract, "getCampaignProfitInfo", [id])
+  const { data: campaign } = useContractRead(contract, "campaigns", [id])
 
   const remainingDays = daysLeft(Number(deadline))
   const percentage = calculateBarPercentage(
@@ -93,7 +110,10 @@ const ProjectDetail = ({
     ethers.utils.parseEther(amountCollected.toString())
   )
 
-  const canWithdraw = campaignStatus?.isCompleted && owner === address
+  // Kiểm tra xem dự án đã hoàn thành hoặc hết hạn chưa
+  const isCampaignEnded = campaignStatus?.isCompleted || Number(remainingDays) <= 0
+
+  const canWithdraw = isCampaignEnded && owner === address
   const canClaim = donatorProfit && Number(donatorProfit.profitShare) > 0 && 
     (Number(donatorProfit.lastClaim) + Number(profitInfo?.profitDistributionPeriod || 0) <= Date.now()/1000)
 
@@ -113,6 +133,26 @@ const ProjectDetail = ({
 
     fetchDonators()
   }, [id, getDonators])
+
+  // Cập nhật số dư và lãi khi component mount
+  useEffect(() => {
+    const fetchBalanceAndProfit = async () => {
+      if (contract && id) {
+        try {
+          if (campaign) {
+            setAvailableBalance(ethers.utils.formatEther(campaign.amountCollected))
+          }
+          if (profitInfo) {
+            setTotalProfit(ethers.utils.formatEther(profitInfo.totalProfit))
+          }
+        } catch (error) {
+          console.error("Error fetching balance and profit:", error)
+        }
+      }
+    }
+
+    fetchBalanceAndProfit()
+  }, [contract, id, campaign, profitInfo])
 
   const handleContribute = async () => {
     if (!contribution || parseFloat(contribution) <= 0) {
@@ -177,22 +217,131 @@ const ProjectDetail = ({
     }
   }
 
+  const handleIdentityVerificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setIdentityVerification(e.target.files[0])
+    }
+  }
+
+  const handleCollateralChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setCollateral(e.target.files[0])
+    }
+  }
+
   const handleRequestFastFunding = async () => {
-    if (!requestReason.trim()) {
-      toast.error("Vui lòng nhập lý do cần huy động vốn nhanh")
+    if (!address) {
+      toast.error("Vui lòng kết nối ví")
       return
+    }
+
+    // Kiểm tra trạng thái chiến dịch
+    if (!campaignStatus) {
+      toast.error("Không thể kiểm tra trạng thái chiến dịch")
+      return
+    }
+
+    if (campaignStatus.isActive) {
+      toast.error("Chiến dịch đã được kích hoạt. Không thể yêu cầu huy động vốn nhanh.")
+      return
+    }
+
+    if (campaignStatus.isCompleted) {
+      toast.error("Chiến dịch đã hoàn thành. Không thể yêu cầu huy động vốn nhanh.")
+      return
+    }
+
+    if (!reason) {
+      toast.error("Vui lòng nhập lý do huy động vốn nhanh")
+      return
+    }
+
+    if (!identityVerification) {
+      toast.error("Vui lòng tải lên giấy tờ xác thực danh tính")
+      return
+    }
+
+    if (collateralType === 'document' && !collateral) {
+      toast.error("Vui lòng tải lên tài liệu tài sản thế chấp")
+      return
+    }
+
+    if (collateralType === 'token') {
+      if (!collateralToken) {
+        toast.error("Vui lòng nhập địa chỉ token")
+        return
+      }
+      if (!collateralAmount || Number(collateralAmount) <= 0) {
+        toast.error("Vui lòng nhập số lượng token hợp lệ")
+        return
+      }
+    }
+
+    if (collateralType === 'nft') {
+      if (!collateralNFT) {
+        toast.error("Vui lòng nhập địa chỉ NFT")
+        return
+      }
+      if (!collateralNFTId) {
+        toast.error("Vui lòng nhập ID của NFT")
+        return
+      }
     }
 
     try {
       setIsRequestingFunds(true)
-      // TODO: Thêm hàm requestFastFunding vào contract
-      // await contract.call("requestFastFunding", [id, requestReason])
-      toast.success("Đã gửi yêu cầu huy động vốn nhanh!")
-      setShowRequestDialog(false)
-      setRequestReason("")
-    } catch (error) {
-      console.error("Lỗi khi yêu cầu huy động vốn nhanh:", error)
-      toast.error("Đã xảy ra lỗi. Vui lòng thử lại.")
+      const collateralTypeEnum = collateralType === 'document' ? 1 : collateralType === 'token' ? 2 : 3
+      
+      // Upload files to IPFS or other storage
+      const identityVerificationUrl = "ipfs://" // Replace with actual upload
+      const collateralUrl = collateral ? "ipfs://" : "" // Replace with actual upload
+
+      // Thêm retry logic
+      const maxRetries = 3
+      let retryCount = 0
+      let success = false
+
+      while (retryCount < maxRetries && !success) {
+        try {
+          await contract?.call("requestFastFunding", [
+            id,
+            reason,
+            identityVerificationUrl,
+            collateralUrl,
+            collateralType === 'token' ? collateralToken : "0x0000000000000000000000000000000000000000",
+            collateralType === 'token' ? ethers.utils.parseEther(collateralAmount) : 0,
+            collateralType === 'nft' ? collateralNFT : "0x0000000000000000000000000000000000000000",
+            collateralType === 'nft' ? Number(collateralNFTId) : 0,
+            collateralTypeEnum
+          ])
+          success = true
+          toast.success("Yêu cầu huy động vốn nhanh đã được gửi")
+          setShowRequestDialog(false)
+        } catch (error: any) {
+          retryCount++
+          if (error.message?.includes("Too Many Requests")) {
+            if (retryCount < maxRetries) {
+              // Đợi một khoảng thời gian tăng dần trước khi thử lại
+              await new Promise(resolve => setTimeout(resolve, 2000 * retryCount))
+              continue
+            }
+          }
+          throw error
+        }
+      }
+
+      if (!success) {
+        throw new Error("Không thể gửi yêu cầu sau nhiều lần thử")
+      }
+    } catch (error: any) {
+      console.error("Error requesting fast funding:", error)
+      if (error.message?.includes("Too Many Requests")) {
+        toast.error("Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.")
+      } else if (error.message?.includes("Campaign is already active")) {
+        toast.error("Chiến dịch đã được kích hoạt. Không thể yêu cầu huy động vốn nhanh.")
+      } else {
+        toast.error("Có lỗi xảy ra khi gửi yêu cầu huy động vốn nhanh")
+      }
     } finally {
       setIsRequestingFunds(false)
     }
@@ -215,11 +364,14 @@ const ProjectDetail = ({
   }
 
   const handleWithdraw = async () => {
-    if (!canWithdraw || !withdrawAmount || !contract) return
+    if (!canWithdraw /* || !withdrawAmount */ || !contract) {
+      toast.error("Không thể rút tiền. Dự án phải hoàn thành hoặc hết hạn.")
+      return
+    }
 
     try {
       setIsWithdrawing(true)
-      const amountInWei = ethers.utils.parseEther(withdrawAmount)
+      // const amountInWei = ethers.utils.parseEther(withdrawAmount) // Tạm thời bỏ điều kiện số tiền
       const tx = await contract.call("withdrawCampaignFunds", [id])
       await tx.wait()
       toast.success("Rút tiền thành công!")
@@ -230,6 +382,31 @@ const ProjectDetail = ({
       toast.error("Không thể rút tiền. Vui lòng thử lại sau.")
     } finally {
       setIsWithdrawing(false)
+    }
+  }
+
+  const handleReportProfit = async () => {
+    if (!profitAmount || !contract) return
+
+    try {
+      setIsReportingProfit(true)
+      const amountInWei = ethers.utils.parseEther(profitAmount)
+      const tx = await contract.call("reportProfit", [id, amountInWei], {
+        value: amountInWei
+      })
+      await tx.wait()
+      toast.success("Báo cáo lợi nhuận thành công!")
+      setShowReportProfitDialog(false)
+      setProfitAmount("")
+    } catch (error: any) {
+      console.error("Lỗi khi báo cáo lợi nhuận:", error)
+      if (error.message?.includes("Must wait for profit distribution period")) {
+        toast.error("Phải đợi qua thời gian phân phối lợi nhuận giữa các lần báo cáo")
+      } else {
+        toast.error("Không thể báo cáo lợi nhuận. Vui lòng thử lại sau.")
+      }
+    } finally {
+      setIsReportingProfit(false)
     }
   }
 
@@ -348,31 +525,134 @@ const ProjectDetail = ({
                 </div>
               )}
 
+              {/* Thêm nút báo cáo lợi nhuận cho chủ dự án */}
+              {address && owner === address && (
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setShowReportProfitDialog(true)}
+                    className="bg-blue-500 hover:bg-blue-600 text-black"
+                  >
+                    Báo cáo lợi nhuận
+                  </Button>
+                </div>
+              )}
+
               {/* Dialog huy động vốn nhanh */}
               <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Yêu cầu huy động vốn nhanh</DialogTitle>
                     <DialogDescription>
-                      Giải thích lý do bạn cần huy động vốn nhanh cho dự án này
+                      Vui lòng cung cấp đầy đủ thông tin để yêu cầu huy động vốn nhanh
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
-                    <textarea
-                      value={requestReason}
-                      onChange={(e) => setRequestReason(e.target.value)}
-                      placeholder="Nhập lý do cần huy động vốn nhanh..."
-                      className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
-                      rows={4}
-                    />
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Lý do huy động vốn nhanh</label>
+                      <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="Nhập lý do cần huy động vốn nhanh..."
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                        rows={4}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Giấy tờ xác thực danh tính</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleIdentityVerificationChange}
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                      />
+                      <p className="text-sm text-gray-400">
+                        Tải lên CMND/CCCD/Hộ chiếu để xác thực danh tính
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Loại tài sản thế chấp</label>
+                      <select
+                        value={collateralType}
+                        onChange={(e) => setCollateralType(e.target.value as 'document' | 'token' | 'nft')}
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                      >
+                        <option value="document">Tài liệu</option>
+                        <option value="token">Token</option>
+                        <option value="nft">NFT</option>
+                      </select>
+                    </div>
+
+                    {collateralType === 'document' && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Tài liệu tài sản thế chấp</label>
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleCollateralChange}
+                          className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                        />
+                        <p className="text-sm text-gray-400">
+                          Tải lên giấy tờ chứng minh quyền sở hữu tài sản thế chấp
+                        </p>
+                      </div>
+                    )}
+
+                    {collateralType === 'token' && (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Địa chỉ token</label>
+                          <Input
+                            value={collateralToken}
+                            onChange={(e) => setCollateralToken(e.target.value)}
+                            placeholder="0x..."
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Số lượng token</label>
+                          <Input
+                            type="number"
+                            value={collateralAmount}
+                            onChange={(e) => setCollateralAmount(e.target.value)}
+                            placeholder="0.0"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {collateralType === 'nft' && (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Địa chỉ NFT</label>
+                          <Input
+                            value={collateralNFT}
+                            onChange={(e) => setCollateralNFT(e.target.value)}
+                            placeholder="0x..."
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">ID của NFT</label>
+                          <Input
+                            type="number"
+                            value={collateralNFTId}
+                            onChange={(e) => setCollateralNFTId(e.target.value)}
+                            placeholder="0"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
-                    <Button
-                      onClick={handleRequestFastFunding}
-                      disabled={isRequestingFunds}
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-black"
-                    >
-                      {isRequestingFunds ? "Đang gửi..." : "Gửi yêu cầu"}
+                    <Button onClick={() => setShowRequestDialog(false)} variant="outline">
+                      Hủy
+                    </Button>
+                    <Button onClick={handleRequestFastFunding} className="bg-amber-500 hover:bg-amber-600 text-black">
+                      Gửi yêu cầu
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -384,7 +664,9 @@ const ProjectDetail = ({
                   <DialogHeader>
                     <DialogTitle>Rút tiền từ dự án</DialogTitle>
                     <DialogDescription>
-                      Nhập số tiền bạn muốn rút. Lưu ý đảm bảo đủ tiền trả lãi cho nhà đầu tư.
+                      {isCampaignEnded 
+                        ? "Nhập số tiền bạn muốn rút. Lưu ý đảm bảo đủ tiền trả lãi cho nhà đầu tư."
+                        : "Dự án phải hoàn thành hoặc hết hạn mới có thể rút tiền."}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
@@ -397,21 +679,72 @@ const ProjectDetail = ({
                         placeholder="0.0"
                         step="0.01"
                         min="0"
-                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                        disabled={!isCampaignEnded}
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none disabled:opacity-50"
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      <p>Số dư khả dụng: {ethers.utils.formatEther(campaignData?.amountCollected?.toString() || '0')} ETH</p>
-                      <p>Lãi phải trả: {ethers.utils.formatEther(profitInfo?.totalProfit?.toString() || '0')} ETH</p>
+                      <p>Số dư khả dụng: {campaign ? ethers.utils.formatEther(campaign.amountCollected) : "0"} ETH</p>
+                      <p>Lãi phải trả: {profitInfo ? ethers.utils.formatEther(profitInfo.totalProfit) : "0"} ETH</p>
+                      {!isCampaignEnded && (
+                        <p className="text-amber-400 mt-2">Dự án chưa kết thúc. Còn {remainingDays} ngày.</p>
+                      )}
                     </div>
                   </div>
                   <DialogFooter>
                     <Button
                       onClick={handleWithdraw}
-                      disabled={isWithdrawing}
+                      disabled={isWithdrawing || !canWithdraw}
                       className="w-full bg-green-500 hover:bg-green-600 text-black"
                     >
-                      {isWithdrawing ? "Đang xử lý..." : "Xác nhận rút tiền"}
+                      {isWithdrawing ? "Đang xử lý..." : canWithdraw ? "Xác nhận rút tiền" : "Không thể rút tiền"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Dialog báo cáo lợi nhuận */}
+              <Dialog open={showReportProfitDialog} onOpenChange={setShowReportProfitDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Báo cáo lợi nhuận</DialogTitle>
+                    <DialogDescription>
+                      Nhập số ETH lợi nhuận bạn muốn báo cáo. Số ETH này sẽ được gửi kèm theo giao dịch.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Số ETH lợi nhuận</label>
+                      <input
+                        type="number"
+                        value={profitAmount}
+                        onChange={(e) => setProfitAmount(e.target.value)}
+                        placeholder="0.0"
+                        step="0.01"
+                        min="0"
+                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Lợi nhuận cố định: {campaign?.fixedProfitShare || 'N/A'}</p>
+                      <p>Tổng lợi nhuận hiện tại: {profitInfo ? ethers.utils.formatEther(profitInfo.totalProfit) : "0"} ETH</p>
+                      <p>Lần báo cáo gần nhất: {profitInfo ? new Date(Number(profitInfo.lastProfitReport) * 1000).toLocaleDateString() : "Chưa có"}</p>
+                      <p>Lần báo cáo tiếp theo: {profitInfo ? new Date(Number(profitInfo.nextProfitReport) * 1000).toLocaleDateString() : "Chưa có"}</p>
+                      <p className="text-amber-400 mt-2">
+                        Thời gian chờ giữa các lần báo cáo: {profitInfo ? Math.floor(Number(profitInfo.profitDistributionPeriod) / (24 * 60 * 60)) : 0} ngày
+                      </p>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => setShowReportProfitDialog(false)} variant="outline">
+                      Hủy
+                    </Button>
+                    <Button 
+                      onClick={handleReportProfit} 
+                      disabled={isReportingProfit || !profitAmount}
+                      className="bg-blue-500 hover:bg-blue-600 text-black"
+                    >
+                      {isReportingProfit ? "Đang xử lý..." : "Báo cáo"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -510,62 +843,106 @@ const ProjectDetail = ({
                   <span className="font-medium">{remainingDays} ngày</span>
                 </div>
 
-                {/* Thêm thông tin lợi nhuận */}
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Tổng lợi nhuận</span>
-                  <span className="font-medium">
-                    {profitInfo ? ethers.utils.formatEther(profitInfo.totalProfit) : '0'} ETH
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Chu kỳ chia lợi nhuận</span>
-                  <span className="font-medium">
-                    {profitInfo ? Math.floor(Number(profitInfo.profitDistributionPeriod) / (24 * 60 * 60)) : 0} ngày
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Lần chia lợi nhuận tiếp theo</span>
-                  <span className="font-medium">
-                    {profitInfo ? new Date(Number(profitInfo.nextProfitReport) * 1000).toLocaleDateString() : 'N/A'}
-                  </span>
-                </div>
-
-                {/* Thêm phần thông tin và nút claim lợi nhuận cho nhà đầu tư */}
-                {donatorProfit && Number(donatorProfit.donationAmount) > 0 && (
-                  <div className="mt-6 space-y-4 border-t border-gray-700 pt-4">
-                    <h3 className="text-lg font-semibold">Thông tin lợi nhuận</h3>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Số tiền đã đầu tư</span>
-                      <span>{ethers.utils.formatEther(donatorProfit.donationAmount)} ETH</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Lợi nhuận được nhận</span>
-                      <span className="text-green-400">{ethers.utils.formatEther(donatorProfit.profitShare)} ETH</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Lần nhận gần nhất</span>
-                      <span>{new Date(Number(donatorProfit.lastClaim) * 1000).toLocaleDateString()}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Lần nhận tiếp theo</span>
-                      <span>
-                        {new Date((Number(donatorProfit.lastClaim) + Number(profitInfo?.profitDistributionPeriod || 0)) * 1000).toLocaleDateString()}
+                {/* Thêm phần thông tin lợi nhuận */}
+                <div className="mt-4 border-t border-gray-700 pt-4">
+                  <h3 className="mb-3 text-lg font-semibold">Thông tin lợi nhuận</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Tổng lợi nhuận</span>
+                      <span className="font-medium text-green-400">
+                        {profitInfo ? ethers.utils.formatEther(profitInfo.totalProfit) : '0'} ETH
                       </span>
                     </div>
 
-                    <Button
-                      onClick={handleClaimProfit}
-                      disabled={!canClaim || isClaiming}
-                      className="w-full bg-green-500 hover:bg-green-600 text-black disabled:bg-gray-600"
-                    >
-                      {isClaiming ? "Đang xử lý..." : canClaim ? "Nhận lợi nhuận" : "Chưa đến kỳ nhận lợi nhuận"}
-                    </Button>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Lợi nhuận cố định</span>
+                      <span className="font-medium">
+                        {campaign?.fixedProfitShare || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Lần báo cáo gần nhất</span>
+                      <span className="font-medium">
+                        {profitInfo && Number(profitInfo.lastProfitReport) > 0 
+                          ? new Date(Number(profitInfo.lastProfitReport) * 1000).toLocaleDateString() 
+                          : "Chưa có"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Lần báo cáo tiếp theo</span>
+                      <span className="font-medium">
+                        {profitInfo && Number(profitInfo.nextProfitReport) > 0 
+                          ? new Date(Number(profitInfo.nextProfitReport) * 1000).toLocaleDateString() 
+                          : "Chưa có"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Thời gian chờ giữa các lần báo cáo</span>
+                      <span className="font-medium">
+                        {profitInfo ? Math.floor(Number(profitInfo.profitDistributionPeriod) / (24 * 60 * 60)) : 0} ngày
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Thêm phần thông tin lợi nhuận của nhà đầu tư nếu đã đầu tư */}
+                {donatorProfit && Number(donatorProfit.donationAmount) > 0 && (
+                  <div className="mt-4 border-t border-gray-700 pt-4">
+                    <h3 className="mb-3 text-lg font-semibold">Lợi nhuận của bạn</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Số tiền đã đầu tư</span>
+                        <span className="font-medium">
+                          {ethers.utils.formatEther(donatorProfit.donationAmount)} ETH
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Lợi nhuận được nhận</span>
+                        <span className="font-medium text-green-400">
+                          {ethers.utils.formatEther(donatorProfit.profitShare)} ETH
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Lần nhận gần nhất</span>
+                        <span className="font-medium">
+                          {Number(donatorProfit.lastClaim) === 0 
+                            ? "Chưa nhận" 
+                            : new Date(Number(donatorProfit.lastClaim) * 1000).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Lần nhận tiếp theo</span>
+                        <span className="font-medium">
+                          {Number(donatorProfit.lastClaim) === 0 
+                            ? "Chưa nhận" 
+                            : new Date((Number(donatorProfit.lastClaim) + Number(profitInfo?.profitDistributionPeriod || 0)) * 1000).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      {/* Thêm nút nhận lợi nhuận */}
+                      <div className="mt-4">
+                        <Button
+                          onClick={handleClaimProfit}
+                          disabled={!canClaim || isClaiming}
+                          className="w-full bg-green-500 hover:bg-green-600 text-black disabled:bg-gray-600"
+                        >
+                          {isClaiming ? "Đang xử lý..." : canClaim ? "Nhận lợi nhuận" : "Chưa có lợi nhuận để nhận"}
+                        </Button>
+                        {!canClaim && Number(donatorProfit.profitShare) > 0 && (
+                          <p className="mt-2 text-sm text-amber-400">
+                            Bạn có thể nhận lợi nhuận vào ngày {new Date((Number(donatorProfit.lastClaim) + Number(profitInfo?.profitDistributionPeriod || 0)) * 1000).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

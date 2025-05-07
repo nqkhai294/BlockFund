@@ -6,6 +6,11 @@ const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
 
 const CROWDFUNDING_ABI = [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -113,6 +118,63 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256",
         "name": "campaignId",
         "type": "uint256"
+      }
+    ],
+    "name": "FastFundingApproved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "FastFundingRejected",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "identityVerification",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "collateral",
+        "type": "string"
+      }
+    ],
+    "name": "FastFundingRequested",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -191,6 +253,19 @@ const CROWDFUNDING_ABI = [
     ],
     "name": "ProfitReported",
     "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "approveFastFunding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -305,6 +380,11 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256",
         "name": "profitDistributionPeriod",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "fixedProfitShare",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -398,6 +478,11 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256",
         "name": "_profitDistributionPeriod",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_fixedProfitShare",
+        "type": "string"
       }
     ],
     "name": "createCampaign",
@@ -435,6 +520,75 @@ const CROWDFUNDING_ABI = [
     "name": "donateToCampaign",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "fastFundingRequests",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "identityVerification",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "collateral",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "isApproved",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRejected",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "collateralToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "collateralNFT",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralNFTId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum CrowdFunding.CollateralType",
+        "name": "collateralType",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -636,6 +790,50 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256[]",
         "name": "profitDistributionPeriods",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "fixedProfitShares",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getCollateralInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "collateralToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "collateralNFT",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralNFTId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum CrowdFunding.CollateralType",
+        "name": "collateralType",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -700,6 +898,69 @@ const CROWDFUNDING_ABI = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getFastFundingRequest",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "identityVerification",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "collateral",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "isApproved",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRejected",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "hasFastFundingRequest",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "numberOfCampaigns",
     "outputs": [
@@ -710,6 +971,32 @@ const CROWDFUNDING_ABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "rejectFastFunding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -728,6 +1015,59 @@ const CROWDFUNDING_ABI = [
     "name": "reportProfit",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_reason",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_identityVerification",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_collateral",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_collateralToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_collateralAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_collateralNFT",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_collateralNFTId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum CrowdFunding.CollateralType",
+        "name": "_collateralType",
+        "type": "uint8"
+      }
+    ],
+    "name": "requestFastFunding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
