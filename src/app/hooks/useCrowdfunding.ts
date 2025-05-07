@@ -9,6 +9,11 @@ const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
 
 const CROWDFUNDING_ABI = [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -116,6 +121,63 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256",
         "name": "campaignId",
         "type": "uint256"
+      }
+    ],
+    "name": "FastFundingApproved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "FastFundingRejected",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "identityVerification",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "collateral",
+        "type": "string"
+      }
+    ],
+    "name": "FastFundingRequested",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "campaignId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -194,6 +256,19 @@ const CROWDFUNDING_ABI = [
     ],
     "name": "ProfitReported",
     "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "approveFastFunding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -308,6 +383,11 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256",
         "name": "profitDistributionPeriod",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "fixedProfitShare",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -401,6 +481,11 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256",
         "name": "_profitDistributionPeriod",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_fixedProfitShare",
+        "type": "string"
       }
     ],
     "name": "createCampaign",
@@ -438,6 +523,75 @@ const CROWDFUNDING_ABI = [
     "name": "donateToCampaign",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "fastFundingRequests",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "identityVerification",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "collateral",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "isApproved",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRejected",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "collateralToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "collateralNFT",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralNFTId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum CrowdFunding.CollateralType",
+        "name": "collateralType",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -639,6 +793,50 @@ const CROWDFUNDING_ABI = [
         "internalType": "uint256[]",
         "name": "profitDistributionPeriods",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "fixedProfitShares",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getCollateralInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "collateralToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "collateralNFT",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collateralNFTId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum CrowdFunding.CollateralType",
+        "name": "collateralType",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -703,6 +901,69 @@ const CROWDFUNDING_ABI = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getFastFundingRequest",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "identityVerification",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "collateral",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "isApproved",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRejected",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "hasFastFundingRequest",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "numberOfCampaigns",
     "outputs": [
@@ -713,6 +974,32 @@ const CROWDFUNDING_ABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      }
+    ],
+    "name": "rejectFastFunding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -731,6 +1018,59 @@ const CROWDFUNDING_ABI = [
     "name": "reportProfit",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_campaignId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_reason",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_identityVerification",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_collateral",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_collateralToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_collateralAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_collateralNFT",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_collateralNFTId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum CrowdFunding.CollateralType",
+        "name": "_collateralType",
+        "type": "uint8"
+      }
+    ],
+    "name": "requestFastFunding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -769,65 +1109,76 @@ export const useCrowdfunding = () => {
 
   const { contract } = useContract(CONTRACT_ADDRESS, CROWDFUNDING_ABI)
 
-  const { data: campaignsData, isLoading, error } = useContractRead(
-    contract,
-    "getCampaigns"
-  )
-
   const { mutateAsync: createCampaign } = useContractWrite(contract, "createCampaign")
   const { mutateAsync: deleteCampaign } = useContractWrite(contract, "deleteCampaign")
   const { mutateAsync: donate } = useContractWrite(contract, "donateToCampaign")
 
   useEffect(() => {
-    if (!isLoading && campaignsData) {
+    const loadCampaigns = async () => {
+      if (!contract) return;
+      
       try {
-        console.log("Raw campaigns data:", campaignsData) // Debug log
+        const defaultAddress = "0x0000000000000000000000000000000000000000";
+        const data = await contract.call("getCampaigns", [], {
+          from: address || defaultAddress
+        });
+        
+        if (!data) return;
 
-        // Chuyển đổi dữ liệu từ mảng riêng biệt thành mảng các object
-        const formattedCampaigns = Array.from({ length: campaignsData.owners.length }, (_, index) => {
+        console.log("Raw campaigns data:", data)
+
+        const formattedCampaigns = Array.from({ length: data.owners.length }, (_, index) => {
           const campaign = {
             id: index.toString(),
-            owner: campaignsData.owners[index]?.toString() || '',
-            title: campaignsData.titles[index] || '',
-            description: campaignsData.descriptions[index] || '',
-            target: ethers.utils.formatEther(campaignsData.targets[index]?.toString() || '0'),
-            deadline: campaignsData.deadlines[index]?.toString() || '0',
-            amountCollected: ethers.utils.formatEther(campaignsData.amountCollecteds[index]?.toString() || '0'),
-            image: campaignsData.images[index] || '',
-            isActive: campaignsData.isActives[index] || false,
-            totalProfit: ethers.utils.formatEther(campaignsData.totalProfits[index]?.toString() || '0'),
-            lastProfitReport: campaignsData.lastProfitReports[index]?.toString() || '0',
-            profitDistributionPeriod: campaignsData.profitDistributionPeriods[index]?.toString() || '0',
-            daysLeft: daysLeft(parseInt(campaignsData.deadlines[index]?.toString() || '0')),
+            owner: data.owners[index]?.toString() || '',
+            title: data.titles[index] || '',
+            description: data.descriptions[index] || '',
+            target: ethers.utils.formatEther(data.targets[index]?.toString() || '0'),
+            deadline: data.deadlines[index]?.toString() || '0',
+            amountCollected: ethers.utils.formatEther(data.amountCollecteds[index]?.toString() || '0'),
+            image: data.images[index] || '',
+            isActive: data.isActives[index] || false,
+            totalProfit: ethers.utils.formatEther(data.totalProfits[index]?.toString() || '0'),
+            lastProfitReport: data.lastProfitReports[index]?.toString() || '0',
+            profitDistributionPeriod: data.profitDistributionPeriods[index]?.toString() || '0',
+            daysLeft: daysLeft(parseInt(data.deadlines[index]?.toString() || '0')),
             percentage: calculateBarPercentage(
-              campaignsData.targets[index]?.toString() || '0',
-              campaignsData.amountCollecteds[index]?.toString() || '0'
+              data.targets[index]?.toString() || '0',
+              data.amountCollecteds[index]?.toString() || '0'
             )
           };
           
-          console.log(`Campaign ${index}:`, campaign) // Debug log
+          console.log(`Campaign ${index}:`, campaign)
           return campaign;
         }).filter(campaign => campaign.isActive);
         
-        console.log("Formatted campaigns:", formattedCampaigns) // Debug log
+        console.log("Formatted campaigns:", formattedCampaigns)
         setCampaigns(formattedCampaigns)
       } catch (error) {
         console.error("Error formatting campaigns:", error)
+      } finally {
+        setIsLoadingCampaigns(false)
       }
-      setIsLoadingCampaigns(false)
-    }
-  }, [campaignsData, isLoading, error])
+    };
+
+    loadCampaigns();
+  }, [contract, address])
 
   const createNewCampaign = async (campaignData: { 
     owner: string; 
     title: string; 
     description: string; 
-    target: any; // Changed from string to any to accept BigNumber
+    target: any;
     deadline: number; 
     image: string; 
-    profitDistributionPeriod: number 
+    profitDistributionPeriod: number;
+    fixedProfitShare: string;
   }) => {
-    const { owner, title, description, target, deadline, image, profitDistributionPeriod } = campaignData;
+    if (!address) {
+      throw new Error("Vui lòng kết nối ví trước")
+    }
+
+    const { owner, title, description, target, deadline, image, profitDistributionPeriod, fixedProfitShare } = campaignData;
     
     try {
       if (!contract) {
@@ -840,7 +1191,8 @@ export const useCrowdfunding = () => {
         target,
         deadline,
         image,
-        profitDistributionPeriod
+        profitDistributionPeriod,
+        fixedProfitShare
       ]);
       return tx;
     } catch (error) {
@@ -850,6 +1202,10 @@ export const useCrowdfunding = () => {
   };
 
   const deleteCampaignById = async (campaignId: string) => {
+    if (!address) {
+      throw new Error("Vui lòng kết nối ví trước")
+    }
+
     try {
       const data = await deleteCampaign({
         args: [campaignId],
@@ -862,6 +1218,10 @@ export const useCrowdfunding = () => {
   }
 
   const donateToCampaign = async (pId: number, amount: string) => {
+    if (!address) {
+      throw new Error("Vui lòng kết nối ví trước")
+    }
+
     try {
       const data = await donate({
         args: [pId],
@@ -877,6 +1237,10 @@ export const useCrowdfunding = () => {
   }
 
   const getDonators = async (campaignId: string) => {
+    if (!address) {
+      throw new Error("Vui lòng kết nối ví trước")
+    }
+
     try {
       const result = await contract?.call("getDonators", [campaignId])
       if (!result) return { donators: [], donations: [] }
@@ -900,6 +1264,6 @@ export const useCrowdfunding = () => {
     donateToCampaign,
     isDonating: isTransacting,
     getDonators,
-    error
+    error: null
   }
 } 

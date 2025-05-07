@@ -15,8 +15,6 @@ interface CreateCampaignArgs {
   deadline: number
   image: string
   profitDistributionPeriod: number
-  profitShare: number
-  expectedProfit: string
   fixedProfitShare: string
 }
 
@@ -25,11 +23,7 @@ const CreateProject = () => {
   const { createNewCampaign, address } = useCrowdfunding()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [profitShare, setProfitShare] = useState(10) // Default 10%
-  const [expectedProfit, setExpectedProfit] = useState('') // Lợi nhuận dự kiến
-  const [isCustomProfit, setIsCustomProfit] = useState(false) // Toggle cho "Liên hệ riêng"
-  const [fixedProfitShare, setFixedProfitShare] = useState('') // Lợi nhuận cố định
-  const [isCustomFixedProfit, setIsCustomFixedProfit] = useState(false) // Toggle cho "Liên hệ riêng"
+  const [fixedProfitShare, setFixedProfitShare] = useState('')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -55,9 +49,6 @@ const CreateProject = () => {
       const deadline = Math.floor(Date.now() / 1000) + (parseInt(formData.deadline) * 24 * 60 * 60)
       const targetInWei = ethers.utils.parseEther(formData.target)
       const profitDistributionPeriod = 30 * 24 * 60 * 60 // 30 days in seconds
-      const profitShareBasisPoints = profitShare * 100 // Convert percentage to basis points
-      const finalExpectedProfit = isCustomProfit ? 'Liên hệ riêng' : expectedProfit
-      const finalFixedProfitShare = isCustomFixedProfit ? 'Liên hệ riêng' : fixedProfitShare
 
       const args: CreateCampaignArgs = {
         owner: address,
@@ -67,9 +58,7 @@ const CreateProject = () => {
         deadline: deadline,
         image: formData.image,
         profitDistributionPeriod: profitDistributionPeriod,
-        profitShare: profitShareBasisPoints,
-        expectedProfit: finalExpectedProfit,
-        fixedProfitShare: finalFixedProfitShare
+        fixedProfitShare: fixedProfitShare
       }
 
       await createNewCampaign(args)
@@ -164,84 +153,30 @@ const CreateProject = () => {
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-muted-foreground">
-            Tỉ Lệ Lợi Nhuận Chia Sẻ: {profitShare}%
-          </label>
-          <Slider
-            value={[profitShare]}
-            onValueChange={(values: number[]) => setProfitShare(values[0])}
-            min={0}
-            max={100}
-            step={1}
-            disabled={isLoading}
-          />
-          <p className="text-sm text-muted-foreground">
-            Tỉ lệ phần trăm lợi nhuận bạn sẽ chia sẻ cho nhà đầu tư từ doanh thu của dự án
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-muted-foreground">
             Lợi Nhuận Cố Định
           </label>
-          <div className="flex items-center gap-4">
-            <input
-              type="checkbox"
-              id="customFixedProfit"
-              checked={isCustomFixedProfit}
-              onChange={(e) => setIsCustomFixedProfit(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300"
-            />
-            <label htmlFor="customFixedProfit" className="text-sm text-muted-foreground">
-              Liên hệ riêng
-            </label>
+          <input
+            type="text"
+            value={fixedProfitShare}
+            onChange={(e) => setFixedProfitShare(e.target.value)}
+            className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
+            placeholder="Ví dụ: 20% mỗi năm hoặc 0.5 ETH mỗi tháng"
+          />
+          <div className="space-y-2 mt-2">
+            <p className="text-sm text-muted-foreground">
+              Lợi nhuận cố định bạn cam kết trả cho nhà đầu tư, không phụ thuộc vào doanh thu dự án
+            </p>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-2">
+              <p className="text-sm text-yellow-500 font-medium">
+                * Lưu ý quan trọng:
+              </p>
+              <ul className="text-sm text-yellow-500/90 list-disc list-inside space-y-1">
+                <li>Đây là cam kết của bạn về lợi nhuận cố định sẽ trả cho nhà đầu tư, bất kể dự án có lãi hay lỗ</li>
+                <li>Ngoài lợi nhuận cố định, bạn có thể đàm phán thêm với nhà đầu tư về phần lợi nhuận chia sẻ từ doanh thu dự án</li>
+                <li>Việc đàm phán lợi nhuận chia sẻ sẽ được thực hiện riêng và không ảnh hưởng đến cam kết lợi nhuận cố định</li>
+              </ul>
+            </div>
           </div>
-          {!isCustomFixedProfit && (
-            <input
-              type="text"
-              value={fixedProfitShare}
-              onChange={(e) => setFixedProfitShare(e.target.value)}
-              className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
-              placeholder="Ví dụ: 20-30% mỗi năm"
-              disabled={isCustomFixedProfit}
-            />
-          )}
-          <p className="text-sm text-muted-foreground">
-            Lợi nhuận cố định bạn cam kết trả cho nhà đầu tư, không phụ thuộc vào doanh thu dự án
-          </p>
-          <p className="text-sm text-yellow-500">
-            * Lưu ý: Đây là cam kết của bạn về lợi nhuận cố định sẽ trả cho nhà đầu tư, bất kể dự án có lãi hay lỗ
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-muted-foreground">
-            Lợi Nhuận Dự Kiến
-          </label>
-          <div className="flex items-center gap-4">
-            <input
-              type="checkbox"
-              id="customProfit"
-              checked={isCustomProfit}
-              onChange={(e) => setIsCustomProfit(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300"
-            />
-            <label htmlFor="customProfit" className="text-sm text-muted-foreground">
-              Liên hệ riêng
-            </label>
-          </div>
-          {!isCustomProfit && (
-            <input
-              type="text"
-              value={expectedProfit}
-              onChange={(e) => setExpectedProfit(e.target.value)}
-              className="w-full px-4 py-2.5 bg-secondary/30 backdrop-blur-sm border border-border/30 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-hufa/50"
-              placeholder="Ví dụ: Dự kiến 20-30% mỗi năm từ doanh thu dự án"
-              disabled={isCustomProfit}
-            />
-          )}
-          <p className="text-sm text-muted-foreground">
-            Dự kiến lợi nhuận tổng thể nhà đầu tư có thể nhận được từ dự án (bao gồm cả lợi nhuận cố định và lợi nhuận chia sẻ)
-          </p>
         </div>
 
         <div className="space-y-2">

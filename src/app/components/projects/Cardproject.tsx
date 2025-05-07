@@ -58,7 +58,7 @@ const CardProject = ({
     addresses: string[]
     amounts: string[]
   }>({ addresses: [], amounts: [] })
-  const [profitInfo, setProfitInfo] = useState<{
+  const [donatorProfitInfo, setDonatorProfitInfo] = useState<{
     donationAmount: string
     profitShare: string
     lastClaim: string
@@ -75,6 +75,7 @@ const CardProject = ({
     "getDonatorProfitInfo", 
     [id, address]
   )
+  const { data: campaignProfitInfo } = useContractRead(contract, "getCampaignProfitInfo", [id])
   const { mutateAsync: donate } = useContractWrite(contract, "donateToCampaign")
 
   useEffect(() => {
@@ -88,7 +89,7 @@ const CardProject = ({
       })
     }
     if (donatorProfit) {
-      setProfitInfo({
+      setDonatorProfitInfo({
         donationAmount: ethers.utils.formatEther(donatorProfit.donationAmount),
         profitShare: ethers.utils.formatEther(donatorProfit.profitShare),
         lastClaim: donatorProfit.lastClaim.toString()
@@ -102,7 +103,9 @@ const CardProject = ({
   const percentage = campaignData ? (Number(campaignData.amountCollected) / Number(campaignData.target)) * 100 : 0
   const remainingDays = campaignData ? daysLeft(parseInt(campaignData.deadline)) : 0
   const uniqueDonators = donatorInfo.addresses.length
-  const profitShare = profitInfo ? Number(profitInfo.profitShare) : 0
+  
+  // Lấy tỉ lệ lợi nhuận từ thông tin dự án
+  const profitRate = campaignData?.profitShare ? Number(campaignData.profitShare) : 0
 
   const handleClick = () => {
     router.push(`/projects/${id}`)
@@ -240,7 +243,9 @@ const CardProject = ({
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Đã huy động</span>
             <span className="text-foreground font-medium text-blue-400">
-              {donatorInfo.amounts.join(', ')} ETH
+              {donatorInfo.amounts.length > 0 
+                ? donatorInfo.amounts.reduce((sum, amount) => sum + Number(amount), 0).toFixed(4)
+                : '0'} ETH
             </span>
           </div>
           <Progress value={percentage} className="h-2" />
@@ -251,9 +256,9 @@ const CardProject = ({
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tỉ lệ lợi nhuận</span>
+            <span className="text-muted-foreground">Lợi nhuận cố định</span>
             <span className="text-foreground font-medium text-green-400">
-              {profitShare}%
+              {campaignData?.fixedProfitShare || 'N/A'}
             </span>
           </div>
         </div>
@@ -331,8 +336,10 @@ const CardProject = ({
                   />
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <p>Tỉ lệ lợi nhuận: {profitShare}%</p>
-                  <p>Số tiền đã huy động: {donatorInfo.amounts.join(', ')} ETH</p>
+                  <p>Lợi nhuận cố định: {campaignData?.fixedProfitShare || 'N/A'}</p>
+                  <p>Số tiền đã huy động: {donatorInfo.amounts.length > 0 
+                    ? donatorInfo.amounts.reduce((sum, amount) => sum + Number(amount), 0).toFixed(4)
+                    : '0'} ETH</p>
                   <p>Mục tiêu: {ethers.utils.formatEther(campaignData?.target || '0')} ETH</p>
                 </div>
               </div>

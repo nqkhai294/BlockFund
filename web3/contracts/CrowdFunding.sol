@@ -1,7 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+interface IERC20 {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
+
+interface IERC721 {
+    function transferFrom(address from, address to, uint256 tokenId) external;
+    function ownerOf(uint256 tokenId) external view returns (address);
+}
+
 contract CrowdFunding {
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
     struct Campaign {
         address owner;
         string title;
@@ -16,6 +38,7 @@ contract CrowdFunding {
         uint256 totalProfit;
         uint256 lastProfitReport;
         uint256 profitDistributionPeriod;
+        string fixedProfitShare;
         mapping(address => uint256) lastProfitClaim;
     }
 
@@ -28,8 +51,26 @@ contract CrowdFunding {
         uint256 amount; // số tiền liên quan (nếu có)
     }
 
+    struct FastFundingRequest {
+        string reason;
+        string identityVerification;
+        string collateral;
+        bool isApproved;
+        bool isRejected;
+        uint256 timestamp;
+        address collateralToken;
+        uint256 collateralAmount;
+        address collateralNFT;
+        uint256 collateralNFTId;
+        CollateralType collateralType;
+    }
+
+    enum CollateralType { NONE, DOCUMENT, TOKEN, NFT }
+
     mapping(uint256 => Campaign) public campaigns;
     mapping(uint256 => CampaignHistory[]) public campaignHistories;
+    mapping(uint256 => FastFundingRequest) public fastFundingRequests;
+    mapping(uint256 => bool) public hasFastFundingRequest;
     uint256 public numberOfCampaigns = 0;
     uint256 public totalHistoryEntries = 0;
 
@@ -40,8 +81,10 @@ contract CrowdFunding {
     event CampaignDeleted(uint256 indexed campaignId, address indexed owner, uint256 timestamp);
     event CampaignExpired(uint256 indexed campaignId, uint256 timestamp);
     event HistoryAdded(uint256 indexed campaignId, string action, address indexed actor, uint256 timestamp);
+    event FastFundingRequested(uint256 indexed campaignId, string reason, string identityVerification, string collateral);
+    event FastFundingApproved(uint256 indexed campaignId);
+    event FastFundingRejected(uint256 indexed campaignId);
 
-    // Hàm helper để thêm lịch sử
     function _addHistory(
         uint256 _campaignId,
         string memory _action,
@@ -71,7 +114,8 @@ contract CrowdFunding {
         uint256 _target,
         uint256 _deadline,
         string memory _image,
-        uint256 _profitDistributionPeriod
+        uint256 _profitDistributionPeriod,
+        string memory _fixedProfitShare
     ) public returns (uint256) {
         Campaign storage campaign = campaigns[numberOfCampaigns];
 
@@ -89,6 +133,7 @@ contract CrowdFunding {
         campaign.totalProfit = 0;
         campaign.lastProfitReport = block.timestamp;
         campaign.profitDistributionPeriod = _profitDistributionPeriod;
+        campaign.fixedProfitShare = _fixedProfitShare;
 
         uint256 campaignId = numberOfCampaigns;
         numberOfCampaigns++;
@@ -97,7 +142,7 @@ contract CrowdFunding {
             campaignId,
             "created",
             _owner,
-            string(abi.encodePacked("Campaign created with target ", _target, " ETH")),
+            string(abi.encodePacked("Campaign created with target ", _target, " ETH, fixed profit ", _fixedProfitShare)),
             0
         );
 
@@ -183,8 +228,6 @@ contract CrowdFunding {
         
         require(campaign.owner == msg.sender, "Only campaign owner can withdraw");
         require(campaign.isActive, "Campaign is not active");
-        require(block.timestamp >= campaign.deadline || campaign.amountCollected >= campaign.target, 
-                "Campaign must be expired or completed");
         
         uint256 amount = campaign.amountCollected;
         campaign.amountCollected = 0;
@@ -291,7 +334,8 @@ contract CrowdFunding {
         bool[] memory isActives,
         uint256[] memory totalProfits,
         uint256[] memory lastProfitReports,
-        uint256[] memory profitDistributionPeriods
+        uint256[] memory profitDistributionPeriods,
+        string[] memory fixedProfitShares
     ) {
         owners = new address[](numberOfCampaigns);
         titles = new string[](numberOfCampaigns);
@@ -304,6 +348,7 @@ contract CrowdFunding {
         totalProfits = new uint256[](numberOfCampaigns);
         lastProfitReports = new uint256[](numberOfCampaigns);
         profitDistributionPeriods = new uint256[](numberOfCampaigns);
+        fixedProfitShares = new string[](numberOfCampaigns);
 
         for(uint i = 0; i < numberOfCampaigns; i++) {
             Campaign storage campaign = campaigns[i];
@@ -318,6 +363,7 @@ contract CrowdFunding {
             totalProfits[i] = campaign.totalProfit;
             lastProfitReports[i] = campaign.lastProfitReport;
             profitDistributionPeriods[i] = campaign.profitDistributionPeriod;
+            fixedProfitShares[i] = campaign.fixedProfitShare;
         }
     }
 
@@ -365,31 +411,26 @@ contract CrowdFunding {
         );
     }
 
-    // Thêm hàm để lấy lịch sử dự án
     function getCampaignHistory(uint256 _id) public view returns (CampaignHistory[] memory) {
         require(_id < numberOfCampaigns, "Campaign does not exist");
         return campaignHistories[_id];
     }
 
-    // Thêm hàm để lấy lịch sử theo loại hành động
     function getCampaignHistoryByAction(uint256 _id, string memory _action) public view returns (CampaignHistory[] memory) {
         require(_id < numberOfCampaigns, "Campaign does not exist");
         
         CampaignHistory[] memory allHistory = campaignHistories[_id];
         uint256 count = 0;
         
-        // Đếm số lượng bản ghi phù hợp
         for(uint i = 0; i < allHistory.length; i++) {
             if(keccak256(bytes(allHistory[i].action)) == keccak256(bytes(_action))) {
                 count++;
             }
         }
         
-        // Tạo mảng kết quả
         CampaignHistory[] memory filteredHistory = new CampaignHistory[](count);
         uint256 index = 0;
         
-        // Lọc các bản ghi phù hợp
         for(uint i = 0; i < allHistory.length; i++) {
             if(keccak256(bytes(allHistory[i].action)) == keccak256(bytes(_action))) {
                 filteredHistory[index] = allHistory[i];
@@ -398,5 +439,121 @@ contract CrowdFunding {
         }
         
         return filteredHistory;
+    }
+
+    function requestFastFunding(
+        uint256 _campaignId,
+        string memory _reason,
+        string memory _identityVerification,
+        string memory _collateral,
+        address _collateralToken,
+        uint256 _collateralAmount,
+        address _collateralNFT,
+        uint256 _collateralNFTId,
+        CollateralType _collateralType
+    ) public {
+        Campaign storage campaign = campaigns[_campaignId];
+        require(msg.sender == campaign.owner, "Only campaign owner can request fast funding");
+        require(!hasFastFundingRequest[_campaignId], "Fast funding request already exists");
+        require(!campaign.isActive, "Campaign is already active");
+
+        if (_collateralType == CollateralType.TOKEN) {
+            require(_collateralToken != address(0), "Invalid token address");
+            require(_collateralAmount > 0, "Invalid token amount");
+            IERC20 token = IERC20(_collateralToken);
+            require(token.balanceOf(msg.sender) >= _collateralAmount, "Insufficient token balance");
+            require(token.transferFrom(msg.sender, address(this), _collateralAmount), "Token transfer failed");
+        }
+        else if (_collateralType == CollateralType.NFT) {
+            require(_collateralNFT != address(0), "Invalid NFT address");
+            IERC721 nft = IERC721(_collateralNFT);
+            require(nft.ownerOf(_collateralNFTId) == msg.sender, "Not NFT owner");
+            nft.transferFrom(msg.sender, address(this), _collateralNFTId);
+        }
+
+        fastFundingRequests[_campaignId] = FastFundingRequest({
+            reason: _reason,
+            identityVerification: _identityVerification,
+            collateral: _collateral,
+            isApproved: false,
+            isRejected: false,
+            timestamp: block.timestamp,
+            collateralToken: _collateralToken,
+            collateralAmount: _collateralAmount,
+            collateralNFT: _collateralNFT,
+            collateralNFTId: _collateralNFTId,
+            collateralType: _collateralType
+        });
+
+        hasFastFundingRequest[_campaignId] = true;
+        emit FastFundingRequested(_campaignId, _reason, _identityVerification, _collateral);
+    }
+
+    function approveFastFunding(uint256 _campaignId) public onlyOwner {
+        require(hasFastFundingRequest[_campaignId], "No fast funding request exists");
+        require(!fastFundingRequests[_campaignId].isApproved && !fastFundingRequests[_campaignId].isRejected, "Request already processed");
+
+        Campaign storage campaign = campaigns[_campaignId];
+        campaign.isActive = true;
+        fastFundingRequests[_campaignId].isApproved = true;
+
+        emit FastFundingApproved(_campaignId);
+    }
+
+    function rejectFastFunding(uint256 _campaignId) public onlyOwner {
+        require(hasFastFundingRequest[_campaignId], "No fast funding request exists");
+        require(!fastFundingRequests[_campaignId].isApproved && !fastFundingRequests[_campaignId].isRejected, "Request already processed");
+
+        FastFundingRequest storage request = fastFundingRequests[_campaignId];
+        request.isRejected = true;
+
+        if (request.collateralType == CollateralType.TOKEN) {
+            IERC20 token = IERC20(request.collateralToken);
+            require(token.transfer(campaigns[_campaignId].owner, request.collateralAmount), "Token return failed");
+        }
+        else if (request.collateralType == CollateralType.NFT) {
+            IERC721 nft = IERC721(request.collateralNFT);
+            nft.transferFrom(address(this), campaigns[_campaignId].owner, request.collateralNFTId);
+        }
+
+        emit FastFundingRejected(_campaignId);
+    }
+
+    function getFastFundingRequest(uint256 _campaignId) public view returns (
+        string memory reason,
+        string memory identityVerification,
+        string memory collateral,
+        bool isApproved,
+        bool isRejected,
+        uint256 timestamp
+    ) {
+        require(hasFastFundingRequest[_campaignId], "No fast funding request exists");
+        FastFundingRequest storage request = fastFundingRequests[_campaignId];
+        return (
+            request.reason,
+            request.identityVerification,
+            request.collateral,
+            request.isApproved,
+            request.isRejected,
+            request.timestamp
+        );
+    }
+
+    function getCollateralInfo(uint256 _campaignId) public view returns (
+        address collateralToken,
+        uint256 collateralAmount,
+        address collateralNFT,
+        uint256 collateralNFTId,
+        CollateralType collateralType
+    ) {
+        require(hasFastFundingRequest[_campaignId], "No fast funding request exists");
+        FastFundingRequest storage request = fastFundingRequests[_campaignId];
+        return (
+            request.collateralToken,
+            request.collateralAmount,
+            request.collateralNFT,
+            request.collateralNFTId,
+            request.collateralType
+        );
     }
 }
