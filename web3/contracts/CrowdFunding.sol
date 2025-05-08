@@ -228,12 +228,24 @@ contract CrowdFunding {
         
         require(campaign.owner == msg.sender, "Only campaign owner can withdraw");
         require(campaign.isActive, "Campaign is not active");
+        require(campaign.amountCollected >= campaign.target, "Campaign has not reached its target");
         
         uint256 amount = campaign.amountCollected;
+        require(amount > 0, "No funds to withdraw");
+        require(address(this).balance >= amount, "Insufficient contract balance");
+        
         campaign.amountCollected = 0;
         
         (bool sent,) = payable(msg.sender).call{value: amount}("");
         require(sent, "Failed to send funds");
+
+        _addHistory(
+            _id,
+            "withdraw",
+            msg.sender,
+            string(abi.encodePacked("Withdrawn ", amount, " ETH")),
+            amount
+        );
     }
 
     function reportProfit(uint256 _id, uint256 _profitAmount) public payable {
@@ -241,8 +253,6 @@ contract CrowdFunding {
         require(campaigns[_id].owner == msg.sender, "Only campaign owner can report profit");
         require(campaigns[_id].isActive, "Campaign is not active");
         require(msg.value == _profitAmount, "Sent amount must match reported profit");
-        require(block.timestamp >= campaigns[_id].lastProfitReport + campaigns[_id].profitDistributionPeriod, 
-                "Must wait for profit distribution period");
 
         Campaign storage campaign = campaigns[_id];
         campaign.totalProfit += _profitAmount;
@@ -267,22 +277,17 @@ contract CrowdFunding {
 
         campaign.donators.push(msg.sender);
         campaign.donations.push(amount);
+        campaign.amountCollected = campaign.amountCollected + amount;
+        
+        _addHistory(
+            _id,
+            "donation",
+            msg.sender,
+            string(abi.encodePacked("Donation received: ", amount, " ETH")),
+            amount
+        );
 
-        (bool sent,) = payable(campaign.owner).call{value: amount}("");
-
-        if(sent) {
-            campaign.amountCollected = campaign.amountCollected + amount;
-            
-            _addHistory(
-                _id,
-                "donation",
-                msg.sender,
-                string(abi.encodePacked("Donation received: ", amount, " ETH")),
-                amount
-            );
-
-            emit DonationReceived(_id, msg.sender, amount);
-        }
+        emit DonationReceived(_id, msg.sender, amount);
     }
 
     function claimProfit(uint256 _id) public {
@@ -302,6 +307,8 @@ contract CrowdFunding {
         uint256 donationAmount = campaign.donations[donatorIndex];
         uint256 totalDonations = campaign.amountCollected;
         uint256 profitShare = (campaign.totalProfit * donationAmount) / totalDonations;
+        require(profitShare > 0, "No profit to claim");
+        require(address(this).balance >= profitShare, "Insufficient contract balance");
 
         campaign.lastProfitClaim[msg.sender] = block.timestamp;
 
@@ -556,4 +563,7 @@ contract CrowdFunding {
             request.collateralType
         );
     }
+
+    // Thêm hàm receive để contract có thể nhận ETH
+    receive() external payable {}
 }
