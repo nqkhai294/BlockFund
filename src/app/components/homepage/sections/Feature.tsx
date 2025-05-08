@@ -19,7 +19,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
 
   return (
     <div
-      className={`relative bg-black/40 border border-yellow-500/20 rounded-xl p-6 overflow-hidden transition-all duration-300 ${
+      className={`relative z-0 bg-black/40 border border-yellow-500/20 rounded-xl p-6 overflow-hidden transition-all duration-300 ${
         isHovered ? "transform scale-[1.02] shadow-lg shadow-yellow-500/10" : ""
       }`}
       onMouseEnter={() => setIsHovered(true)}
