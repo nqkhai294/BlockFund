@@ -662,24 +662,11 @@ const ProjectDetail = ({
                     <DialogTitle>Rút tiền từ dự án</DialogTitle>
                     <DialogDescription>
                       {isCampaignEnded 
-                        ? "Nhập số tiền bạn muốn rút. Lưu ý đảm bảo đủ tiền trả lãi cho nhà đầu tư."
+                        ? "Bạn sẽ rút toàn bộ số tiền đã gọi được từ dự án."
                         : "Dự án phải hoàn thành hoặc hết hạn mới có thể rút tiền."}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Số ETH muốn rút</label>
-                      <input
-                        type="number"
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        placeholder="0.0"
-                        step="0.01"
-                        min="0"
-                        disabled={!isCampaignEnded}
-                        className="w-full rounded-lg border border-gray-700 bg-gray-800 p-4 text-white focus:border-amber-400 focus:outline-none disabled:opacity-50"
-                      />
-                    </div>
                     <div className="text-sm text-muted-foreground">
                       <p>Số dư khả dụng: {campaign ? ethers.utils.formatEther(campaign.amountCollected) : "0"} ETH</p>
                       <p>Lãi phải trả: {profitInfo ? ethers.utils.formatEther(profitInfo.totalProfit) : "0"} ETH</p>
@@ -944,6 +931,7 @@ const ProjectDetail = ({
                 )}
               </div>
               
+              {/* Phần đóng góp */}
               <div className="mt-6 space-y-4">
                 <div>
                   <label htmlFor="amount" className="mb-2 block text-sm font-medium">
@@ -957,16 +945,22 @@ const ProjectDetail = ({
                     value={contribution}
                     onChange={(e) => setContribution(e.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white focus:border-amber-400 focus:outline-none"
+                    disabled={isCampaignEnded}
                   />
                 </div>
                 
                 <button
                   onClick={handleContribute}
-                  disabled={isSubmitting || isDonating || Number(remainingDays) <= 0}
+                  disabled={isSubmitting || isDonating || Number(remainingDays) <= 0 || isCampaignEnded}
                   className="w-full rounded-lg bg-amber-400 px-6 py-3 text-sm font-medium text-black hover:bg-amber-500 disabled:opacity-50"
                 >
-                  {isSubmitting || isDonating ? "Đang xử lý..." : "Đóng góp ngay"}
+                  {isSubmitting || isDonating ? "Đang xử lý..." : isCampaignEnded ? "Dự án đã kết thúc" : "Đóng góp ngay"}
                 </button>
+                {isCampaignEnded && (
+                  <p className="text-sm text-amber-400 mt-2">
+                    Dự án đã đạt mục tiêu hoặc hết hạn. Không thể đóng góp thêm.
+                  </p>
+                )}
               </div>
             </div>
           </div>
