@@ -72,53 +72,45 @@ export default function SmartContractsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="space-y-12">
-          <div>
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="mb-8"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Quay lại
-            </Button>
-            <h1 className="text-4xl font-bold mb-4">Smart Contracts</h1>
-            <p className="text-xl text-gray-400">
-              Tài liệu chi tiết về các smart contracts của BlockFund
-            </p>
-          </div>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="mb-8"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Quay lại
+        </Button>
+        <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+          Smart Contracts
+        </h1>
+        <p className="text-lg text-gray-300 mb-10">
+          Tài liệu chi tiết về các smart contracts của BlockFund
+        </p>
 
-          {sections.map((section, index) => (
-            <div key={index} className="space-y-4">
-              <h2 className="text-2xl font-bold">{section.title}</h2>
-              <div className="prose prose-invert">
-                <pre className="bg-gray-800 p-4 rounded-lg overflow-x-auto">
-                  <code className="text-gray-300 whitespace-pre-line">{section.content}</code>
+        <div className="space-y-10 mb-16">
+          {sections.map((section, idx) => (
+            <div key={idx}>
+              <h2 className="text-2xl font-bold mb-3 text-yellow-400 flex items-center gap-2">
+                <Code className="w-6 h-6 text-yellow-400" /> {section.title}
+              </h2>
+              <div className="bg-black/70 border border-yellow-500/30 rounded-xl p-6 shadow-lg overflow-x-auto">
+                <pre className="text-gray-200 text-sm whitespace-pre-line font-mono">
+                  {section.content.trim()}
                 </pre>
               </div>
             </div>
           ))}
+        </div>
 
-          <div className="pt-8">
-            <h2 className="text-2xl font-bold mb-4">Tài liệu liên quan</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button
-                variant="outline"
-                onClick={() => router.push('/docs/api')}
-                className="w-full border-hufa text-hufa hover:bg-hufa/10"
-              >
-                Tài liệu API
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/docs/security')}
-                className="w-full border-hufa text-hufa hover:bg-hufa/10"
-              >
-                Bảo mật
-              </Button>
-            </div>
-          </div>
+        <div className="text-center">
+          <Button
+            size="lg"
+            className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold px-10 py-4 rounded-3xl shadow-lg hover:scale-105 transition-all duration-300 border-2 border-yellow-400"
+            onClick={() => router.push('/docs/api')}
+          >
+            Xem tài liệu API
+          </Button>
         </div>
       </div>
     </div>

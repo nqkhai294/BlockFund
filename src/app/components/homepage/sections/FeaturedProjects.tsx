@@ -24,12 +24,12 @@ const FeaturedProjects = () => {
     return (
       <div className="space-y-6 ">
         <div className="flex items-center justify-between ">
-          <h2 className="text-2xl font-bold text-foreground">Dự Án Nổi Bật</h2>
+          <h2 className="text-2xl font-bold text-foreground">Featured Projects</h2>
           <Link 
             href="/projects"
             className="flex items-center gap-2 text-hufa hover:text-hufa/80 transition-colors"
           >
-            <span>Xem tất cả</span>
+            <span>View All</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -54,12 +54,12 @@ const FeaturedProjects = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Dự Án Nổi Bật</h2>
+        <h2 className="text-2xl font-bold text-foreground">Featured Projects</h2>
         <Link 
           href="/projects"
           className="flex items-center gap-2 text-hufa hover:text-hufa/80 transition-colors"
         >
-          <span>Xem tất cả</span>
+          <span>View All</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -75,7 +75,6 @@ const FeaturedProjects = () => {
             target={project.target}
             raised={project.amountCollected}
             deadline={project.deadline}
-            donators={project.donators}
             author={{
               name: project.owner,
               avatar: `/avatars/${project.owner.slice(2, 4)}.png`

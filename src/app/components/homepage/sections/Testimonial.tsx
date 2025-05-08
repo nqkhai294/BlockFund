@@ -40,7 +40,7 @@ export function HpTestimonials() {
         <h2 className="text-3xl lg:text-4xl text-white font-bold bg-clip-text bg-gradient-to-r from-primary-500 to-primary-400 mb-4">
           What people are saying
         </h2>
-        <p className="text-gray-400 text-lg mb-16">
+        <p className="text-yellow-400 text-lg mb-16">
           Hear from our early community members
         </p>
 

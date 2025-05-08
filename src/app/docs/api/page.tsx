@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/app/components/ui/button"
-import { ArrowLeft, Code, Copy, Check } from "lucide-react"
+import { ArrowLeft, Code, Copy, Check, KeyRound } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -66,7 +66,7 @@ const apiEndpoints = [
   }
 ]
 
-const CodeBlock = ({ code }) => {
+const CodeBlock = ({ code }: { code: string }) => {
   const [copied, setCopied] = useState(false)
 
   const copyToClipboard = () => {
@@ -76,18 +76,19 @@ const CodeBlock = ({ code }) => {
   }
 
   return (
-    <div className="relative">
-      <pre className="bg-gray-800 p-4 rounded-lg overflow-x-auto">
-        <code className="text-gray-300">{code}</code>
+    <div className="relative my-2">
+      <pre className="bg-yellow-400/10 border border-yellow-500/30 text-yellow-200 p-4 rounded-xl overflow-x-auto font-mono text-sm">
+        <code>{code}</code>
       </pre>
       <button
         onClick={copyToClipboard}
-        className="absolute top-2 right-2 p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+        className="absolute top-2 right-2 p-2 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/40 transition-colors"
+        aria-label="Copy code"
       >
         {copied ? (
           <Check className="w-4 h-4 text-green-500" />
         ) : (
-          <Copy className="w-4 h-4 text-gray-400" />
+          <Copy className="w-4 h-4 text-yellow-400" />
         )}
       </button>
     </div>
@@ -99,74 +100,76 @@ export default function ApiPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="space-y-12">
-          <div>
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="mb-8"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Quay lại
-            </Button>
-            <h1 className="text-4xl font-bold mb-4">API Reference</h1>
-            <p className="text-xl text-gray-400">
-              Tài liệu API để tích hợp với BlockFund
-            </p>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="mb-8"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Quay lại
+        </Button>
+        <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+          API Reference
+        </h1>
+        <p className="text-lg text-gray-300 mb-10">
+          Tài liệu API để tích hợp với BlockFund
+        </p>
+
+        {/* Authentication */}
+        <div className="bg-black/70 border border-yellow-500/30 rounded-xl p-6 shadow-lg mb-10">
+          <div className="flex items-center gap-3 mb-2">
+            <KeyRound className="w-6 h-6 text-yellow-400" />
+            <h2 className="text-xl font-bold text-yellow-400">Authentication</h2>
           </div>
+          <p className="text-gray-200 mb-2">
+            Tất cả API calls cần có API key trong header <span className="font-mono bg-yellow-500/10 px-2 py-1 rounded text-yellow-400">Authorization</span>
+          </p>
+          <CodeBlock 
+            code={`headers: {
+  'Authorization': 'Bearer YOUR_API_KEY'
+}`}
+          />
+        </div>
 
-          <div className="space-y-8">
-            <div className="bg-gray-800/50 p-6 rounded-lg">
-              <h2 className="text-xl font-bold mb-4">Authentication</h2>
-              <p className="text-gray-400 mb-4">
-                Tất cả API calls cần có API key trong header Authentication
-              </p>
-              <CodeBlock 
-                code={`
-                  headers: {
-                    'Authorization': 'Bearer YOUR_API_KEY'
-                  }
-                `}
-              />
-            </div>
-
-            {apiEndpoints.map((endpoint, index) => (
-              <div key={index} className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span className={`px-2 py-1 rounded text-sm font-medium ${
-                    endpoint.method === 'GET' 
-                      ? 'bg-blue-500/20 text-blue-500' 
-                      : 'bg-green-500/20 text-green-500'
-                  }`}>
-                    {endpoint.method}
-                  </span>
-                  <code className="text-hufa">{endpoint.endpoint}</code>
-                </div>
-                <p className="text-gray-400">{endpoint.description}</p>
-                <CodeBlock code={endpoint.example} />
+        {/* Endpoints */}
+        <div className="space-y-8 mb-16">
+          {apiEndpoints.map((endpoint, index) => (
+            <div key={index} className="bg-black/70 border border-yellow-500/30 rounded-xl p-6 shadow-lg">
+              <div className="flex items-center gap-4 mb-2">
+                <span className={`px-2 py-1 rounded text-sm font-bold tracking-wide ${
+                  endpoint.method === 'GET' 
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-400'
+                    : 'bg-green-500/20 text-green-400 border border-green-400'
+                }`}>
+                  {endpoint.method}
+                </span>
+                <span className="font-mono text-yellow-400 text-base">{endpoint.endpoint}</span>
               </div>
-            ))}
-          </div>
-
-          <div className="pt-8">
-            <h2 className="text-2xl font-bold mb-4">SDK</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button
-                variant="outline"
-                onClick={() => router.push('/docs/sdk/javascript')}
-                className="w-full border-hufa text-hufa hover:bg-hufa/10"
-              >
-                JavaScript SDK
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/docs/sdk/python')}
-                className="w-full border-hufa text-hufa hover:bg-hufa/10"
-              >
-                Python SDK
-              </Button>
+              <p className="text-gray-200 mb-2">{endpoint.description}</p>
+              <CodeBlock code={endpoint.example} />
             </div>
+          ))}
+        </div>
+
+        {/* SDK */}
+        <div className="pt-8">
+          <h2 className="text-2xl font-bold mb-4 text-yellow-400">SDK</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition-all duration-300 border-2 border-yellow-400"
+              onClick={() => router.push('/docs/sdk/javascript')}
+            >
+              JavaScript SDK
+            </Button>
+            <Button
+              size="lg"
+              className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition-all duration-300 border-2 border-yellow-400"
+              onClick={() => router.push('/docs/sdk/python')}
+            >
+              Python SDK
+            </Button>
           </div>
         </div>
       </div>

@@ -15,7 +15,6 @@ const supportResources = [
       "Hướng dẫn bắt đầu",
       "API Documentation",
       "Smart Contract Guides",
-      "Best Practices"
     ],
     link: "/docs"
   },
@@ -27,7 +26,7 @@ const supportResources = [
       "Tin tức mới nhất",
       "Case Studies",
       "Market Insights",
-      "Success Stories"
+     
     ],
     link: "/blog"
   },
@@ -39,7 +38,7 @@ const supportResources = [
       "Câu hỏi thường gặp",
       "Hướng dẫn khắc phục sự cố",
       "Quy trình hoạt động",
-      "Chính sách và điều khoản"
+      
     ],
     link: "/faq"
   },
@@ -51,7 +50,7 @@ const supportResources = [
       "Hỗ trợ 24/7",
       "Live Chat",
       "Email Support",
-      "Community Forum"
+      
     ],
     link: "/support"
   }

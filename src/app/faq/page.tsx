@@ -36,7 +36,7 @@ export default function FAQPage() {
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center space-y-6 mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold">Câu Hỏi Thường Gặp</h1>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">Câu Hỏi Thường Gặp</h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             Tìm câu trả lời cho những câu hỏi phổ biến về BlockFund
           </p>
@@ -46,15 +46,15 @@ export default function FAQPage() {
           {faqs.map((faq, index) => (
             <div 
               key={index}
-              className="border border-gray-800 rounded-lg overflow-hidden"
+              className="border border-yellow-500/20 rounded-lg overflow-hidden bg-black/40 backdrop-blur-sm hover:border-yellow-500/40 transition-all duration-300"
             >
               <button
-                className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-900 transition-colors"
+                className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-yellow-500/5 transition-colors"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
               >
-                <span className="font-medium">{faq.question}</span>
+                <span className="font-medium text-yellow-400">{faq.question}</span>
                 <svg
-                  className={`w-5 h-5 transform transition-transform ${
+                  className={`w-5 h-5 transform transition-transform text-yellow-400 ${
                     openIndex === index ? 'rotate-180' : ''
                   }`}
                   fill="none"
@@ -70,8 +70,8 @@ export default function FAQPage() {
                 </svg>
               </button>
               {openIndex === index && (
-                <div className="px-6 py-4 bg-gray-900">
-                  <p className="text-gray-400">{faq.answer}</p>
+                <div className="px-6 py-4 bg-yellow-500/5 border-t border-yellow-500/20">
+                  <p className="text-gray-300">{faq.answer}</p>
                 </div>
               )}
             </div>

@@ -12,7 +12,7 @@ import { QuickFundingRequests } from '@/app/components/campaign/QuickFundingRequ
 import { calculateBarPercentage, daysLeft } from '@/app/utils'
 
 export default function CampaignDetails({ params }: { params: { id: string } }) {
-  const { address } = useAddress()
+  const address = useAddress()
   const { contract } = useContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS)
   const { data: campaign, isLoading } = useContractRead(contract, "getCampaign", [params.id])
   const { data: donations, isLoading: isLoadingDonations } = useContractRead(contract, "getDonators", [params.id])

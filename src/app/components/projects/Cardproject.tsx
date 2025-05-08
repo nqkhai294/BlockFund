@@ -277,7 +277,7 @@ const CardProject = ({
         <div className="flex items-center justify-between border-t border-border/30 pt-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span className="text-sm">{formatRemainingTime(remainingDays)}</span>
+            <span className="text-sm">{formatRemainingTime(Number(remainingDays))}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Users className="w-4 h-4" />

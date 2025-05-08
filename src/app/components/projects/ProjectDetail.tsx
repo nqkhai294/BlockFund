@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Clock, Users, Calendar, ArrowRight, Rocket } from "lucide-react"
+import {  Rocket } from "lucide-react"
 import Container from "../Container"
 import { useCrowdfunding } from "@/app/hooks/useCrowdfunding"
 import { ethers, BigNumber } from "ethers"
@@ -14,8 +14,7 @@ import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog'
 import { toast } from 'react-hot-toast'
 import { Input } from '../ui/input'
-import { Label } from '../ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+
 
 interface Comment {
   id: string
@@ -443,9 +442,7 @@ const ProjectDetail = ({
             <div className="space-y-4">
               <div className="flex justify-between">
                 <h1 className="text-3xl font-bold">{title}</h1>
-                <span className="rounded-full bg-amber-400 px-4 py-1 text-sm font-medium text-black">
-                  {owner.slice(0, 6)}...{owner.slice(-4)}
-                </span>
+                
               </div>
               
               {/* Tiến độ dự án */}

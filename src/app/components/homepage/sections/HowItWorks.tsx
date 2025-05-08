@@ -1,58 +1,100 @@
-'use client'
+import {useRouter} from "next/navigation";
 
-import { FileText, Wallet, Rocket, CheckCircle } from "lucide-react"
+export function HpHowItWorks() {
 
-const HowItWorks = () => {
-  const steps = [
-    {
-      icon: <FileText className="w-6 h-6" />,
-      title: "Tạo Dự Án",
-      description: "Đăng ký và tạo dự án của bạn với thông tin chi tiết về mục tiêu và kế hoạch"
-    },
-    {
-      icon: <Wallet className="w-6 h-6" />,
-      title: "Kết Nối Ví",
-      description: "Kết nối ví MetaMask để có thể nhận tiền ủng hộ và quản lý dự án"
-    },
-    {
-      icon: <Rocket className="w-6 h-6" />,
-      title: "Khởi Chạy",
-      description: "Bắt đầu chiến dịch huy động vốn và chia sẻ dự án của bạn với cộng đồng"
-    },
-    {
-      icon: <CheckCircle className="w-6 h-6" />,
-      title: "Hoàn Thành",
-      description: "Khi đạt được mục tiêu, bạn có thể rút tiền và bắt đầu thực hiện dự án"
-    }
-  ]
+    const router = useRouter();
 
-  return (
-    <div className="space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-foreground">Cách Thức Hoạt Động</h2>
-        <p className="text-muted-foreground">Chỉ với 4 bước đơn giản để bắt đầu huy động vốn cho dự án của bạn</p>
-      </div>
+    const steps = [
+      {
+        title: "Create a Project",
+        description:
+          "Set up your project with comprehensive details, funding goals, and timeline. Add images, videos, and documentation to showcase your vision.",
+        position: "left",
+      },
+      {
+        title: "Connect Your Wallet",
+        description:
+          "Securely connect your cryptocurrency wallet to invest in projects or receive funding. We support MetaMask and other popular wallets.",
+        position: "right",
+      },
+      {
+        title: "Fund or Get Funded",
+        description:
+          "Browse projects to invest in or share your project to receive funding. All transactions are secured by smart contracts.",
+        position: "left",
+      },
+      {
+        title: "Track Progress",
+        description:
+          "Monitor your investments or funding progress through your personalized dashboard with detailed analytics.",
+        position: "right",
+      },
+    ];
+  
+    return (
+      <section id="how-it-works" className="py-20 bg-black text-white border-b-[1px] border-b-gray">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold mb-4">How BlockFund works</h2>
+          <p className="text-lg text-yellow-400 mb-16">
+            Our platform makes project funding and investment straightforward
+          </p>
+  
+          <div className="relative">
+          <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-white transform -translate-x-1/2 z-0 pointer-events-none" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {steps.map((step, index) => (
-          <div 
-            key={index}
-            className="bg-secondary/30 backdrop-blur-sm rounded-xl p-6 space-y-4 border border-border/30"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-hufa/90 rounded-lg">
-                {step.icon}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
-              </div>
+  
+            <div className="flex flex-col gap-12 relative">
+              {steps.map((step, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col lg:flex-row items-center justify-center w-full relative"
+                >
+                  {step.position === "left" ? (
+                    <>
+                      <div className="flex-1 text-center lg:text-left order-2 lg:order-1 lg:pr-12">
+                        <div className="inline-block p-6 rounded-xl shadow border border-gray-700 max-w-md ml-auto mr-auto lg:mr-0">
+                          <h3 className="text-xl text-yellow-400 font-semibold mb-2">{step.title}</h3>
+                          <p className="text-white">{step.description}</p>
+                        </div>
+                      </div>
+                      <div className="order-1 lg:order-2 mx-auto mb-4 lg:mb-0">
+                        <div className="w-12 h-12 rounded-full bg-black text-white font-bold shadow-lg border-4 border-white flex items-center justify-center">
+                          {index + 1}
+                        </div>
+                      </div>
+                      <div className="flex-1 order-3 lg:pl-12" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1 order-3 lg:order-1 lg:pr-12" />
+                      <div className="order-1 lg:order-2 mx-auto mb-4 lg:mb-0">
+                        <div className="w-12 h-12 rounded-full bg-black text-white font-bold shadow-lg border-4 border-white flex items-center justify-center">
+                          {index + 1}
+                        </div>
+                      </div>
+                      <div className="flex-1 text-center lg:text-left order-2 lg:order-3 lg:pl-12">
+                        <div className="inline-block p-6 rounded-xl shadow border border-gray-700 max-w-md ml-auto mr-auto lg:ml-0">
+                          <h3 className="text-xl text-yellow-400 font-semibold mb-2">{step.title}</h3>
+                          <p className="text-white">{step.description}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export default HowItWorks 
+  
+          <div className="mt-16 text-center">
+            <button
+              onClick={() => router.push("/projects")}
+            className="bg-white text-black hover:bg-amber-400 text-lg font-medium px-6 py-3 rounded-3xl bg-gradient-to-r border border-gray-600 shadow hover:scale-105 transition-transform cursor-pointer">
+              Get Started Today
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  
+  export default HpHowItWorks;
