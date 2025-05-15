@@ -1,59 +1,100 @@
+# BlockFund
 
-![tw-banner](https://github.com/thirdweb-example/next-starter/assets/57885104/20c8ce3b-4e55-4f10-ae03-2fe4743a5ee8)
+BlockFund là một ứng dụng web3 được xây dựng bằng Next.js, cho phép người dùng tương tác với blockchain và quản lý các giao dịch tài chính phi tập trung.
 
-# thirdweb-next-starter
+## Tính năng chính
 
-Starter template to build an onchain react native app with [thirdweb](https://thirdweb.com/) and [next](https://nextjs.org/).
+- Tích hợp Web3 và tương tác với blockchain
+- Giao diện người dùng hiện đại với Tailwind CSS
+- Xác thực và quản lý ví điện tử
+- Quản lý giao dịch và tài sản kỹ thuật số
+- Tích hợp với ThirdWeb SDK
 
-## Installation
+## Công nghệ sử dụng
 
-Install the template using [thirdweb create](https://portal.thirdweb.com/cli/create)
+- **Frontend Framework**: Next.js 14
+- **Ngôn ngữ**: TypeScript
+- **Styling**: Tailwind CSS
+- **Web3 Integration**: 
+  - ThirdWeb SDK
+  - Ethers.js
+  - Ethereum Cryptography
+- **State Management**: React Query
+- **Form Handling**: React Hook Form với Zod validation
+- **UI Components**: 
+  - Radix UI
+  - Framer Motion
+  - Lucide React Icons
+- **Database**: Prisma ORM
 
+## Yêu cầu hệ thống
+
+- Node.js (phiên bản LTS mới nhất)
+- npm hoặc yarn
+- MetaMask hoặc ví Web3 tương thích
+
+## Cài đặt
+
+1. Clone repository:
 ```bash
-  npx thirdweb create app --next
+git clone [repository-url]
+cd blockfund
 ```
 
-## Environment Variables
-
-To run this project, you will need to add the following environment variables to your .env file:
-
-`CLIENT_ID`
-
-To learn how to create a client ID, refer to the [client documentation](https://portal.thirdweb.com/typescript/v5/client). 
-
-## Run locally
-
-Install dependencies
-
+2. Cài đặt dependencies:
 ```bash
-yarn
+npm install
+# hoặc
+yarn install
 ```
 
-Start development server
+3. Cấu hình môi trường:
+Tạo file `.env.local` và thêm các biến môi trường cần thiết:
+```env
+DATABASE_URL="your-database-url"
+NEXT_PUBLIC_THIRDWEB_CLIENT_ID="your-thirdweb-client-id"
+```
 
+4. Chạy migrations database:
 ```bash
+npx prisma migrate dev
+```
+
+5. Khởi chạy development server:
+```bash
+npm run dev
+# hoặc
 yarn dev
 ```
 
-Create a production build
+Ứng dụng sẽ chạy tại `http://localhost:3000`
 
-```bash
-yarn build
+## Scripts
+
+- `npm run dev`: Khởi chạy development server
+- `npm run build`: Build ứng dụng cho production
+- `npm run start`: Khởi chạy production server
+- `npm run lint`: Kiểm tra lỗi code
+
+## Cấu trúc thư mục
+
+```
+blockfund/
+├── src/              # Source code chính
+├── public/           # Static files
+├── prisma/          # Database schema và migrations
+├── web3/            # Web3 related code
+└── ...
 ```
 
-Preview the production build
+## Contributing
 
-```bash
-yarn start
-```
+1. Fork repository
+2. Tạo branch mới (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add some amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Tạo Pull Request
 
-## Resources
+## License
 
-- [Documentation](https://portal.thirdweb.com/typescript/v5)
-- [Templates](https://thirdweb.com/templates)
-- [YouTube](https://www.youtube.com/c/thirdweb)
-- [Blog](https://blog.thirdweb.com)
-
-## Need help?
-
-For help or feedback, please [visit our support site](https://thirdweb.com/support)
+[MIT License](LICENSE)
